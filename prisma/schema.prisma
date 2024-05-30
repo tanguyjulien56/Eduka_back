@@ -1,0 +1,238 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum DisciplineName {
+  MATHEMATIQUES
+  ARTS_PLASTIQUES
+  FRANCAIS
+  ANGLAIS
+  PHYSIQUE
+  MUSIQUE
+  HISTOIRE
+  TECHNOLOGIE
+  CHIMIE
+  EDUCATION_CIVIQUE
+  PHILOSOPHIE
+  BIOLOGIE
+}
+model Discipline {
+  id    String               @id @default(cuid())
+  name  DisciplineName
+  UserHasDiscipline UserHasDisciplines[]
+}
+
+model Profil {
+  id         String   @id @default(cuid())
+  lastname   String
+  firstname  String
+  photo      Bytes //@dev vérifier si string 
+  address_id String
+  user_id    String
+
+  address Address @relation(fields: [address_id], references: [id])
+  user    User    @relation(fields: [user_id], references: [id])
+
+  @@index([address_id, user_id], name: "profil_address_id_user_id_index")
+}
+
+model UserHasDisciplines {
+  user_id       String
+  discipline_id String
+
+  user       User       @relation(fields: [user_id], references: [id])
+  discipline Discipline @relation(fields: [discipline_id], references: [id])
+
+  @@id([user_id, discipline_id])
+  @@index([user_id, discipline_id], name: "user_has_discipline_user_id_discipline_id_index")
+}
+
+model ProfilAttendanceEvent {
+  event_id    String
+  status      String  // @dev ENUM 
+  children_id String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+
+  event    Event    @relation(fields: [event_id], references: [id])
+  children Children @relation(fields: [children_id], references: [id])
+
+  @@id([event_id, children_id])
+  @@index([children_id, event_id], name: "profil_attendance_event_children_id_event_id_index")
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  content     String
+  user_id     String
+  event_id    String
+  message_type String  // ENUM placeholder, replace with specific values if needed
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+
+  user  User  @relation(fields: [user_id], references: [id])
+  event Event @relation(fields: [event_id], references: [id])
+
+  @@index([user_id, event_id], name: "message_user_id_event_id_index")
+}
+
+model UserHasSchool {
+  school_id String
+  user_id   String
+
+  user   User   @relation(fields: [user_id], references: [id])
+  school School @relation(fields: [school_id], references: [id])
+
+  @@id([school_id, user_id])
+  @@index([school_id, user_id], name: "user_has_school_school_id_user_id_index")
+}
+
+model School {
+  id         String   @id @default(cuid())
+  name       String
+  address    Address? @relation(fields: [address_id], references: [id], onDelete: SetNull)
+  address_id String?  @unique
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+
+  children Children[]
+  userHasSchool UserHasSchool[]
+
+  @@index([address_id], name: "school_address_id_index")
+}
+
+model EventHasEventTag {
+  event_tag_id String
+  event_id     String
+
+  eventTag EventTag @relation(fields: [event_tag_id], references: [id])
+  event    Event    @relation(fields: [event_id], references: [id])
+
+  @@id([event_tag_id, event_id])
+  @@index([event_id, event_tag_id], name: "event_has_event_tag_event_id_event_tag_id_index")
+}
+
+model Address {
+  id           String   @id @default(cuid())
+  address_line String
+  zip_code     String
+  city         String
+  school     School?
+  school_id  String?  @unique
+  profil Profil[] //@dev one to one
+  event  Event[] //@dev one to one
+}
+
+model RoleHasUser {
+  role_id String
+  user_id String
+
+  role Role @relation(fields: [role_id], references: [id])
+  user User @relation(fields: [user_id], references: [id])
+
+  @@id([role_id, user_id])
+  @@index([role_id, user_id], name: "role_has_user_role_id_user_id_index")
+}
+
+enum RoleName {
+  PARENT
+  PARENT_TEACHER
+  SCHOOL
+}
+
+model Role {
+  id   String @id @default(cuid())
+  name RoleName 
+
+  roleHasUser RoleHasUser[] //@dev one to one
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  start_date  DateTime
+  end_date    DateTime
+  guest_limit Int
+  is_public   Boolean
+  category    String  // @enum
+  address_id  String
+  user_id     String
+  status      String  // @enum
+  created_at  DateTime
+  updated_at  DateTime
+
+  address Address @relation(fields: [address_id], references: [id])
+  user    User    @relation(fields: [user_id], references: [id])
+  messages Message[]
+  eventTags EventHasEventTag[]
+  attendances ProfilAttendanceEvent[]
+
+  @@index([address_id, user_id], name: "event_address_id_user_id_index")
+}
+
+enum UserStatus {
+  CONNECTED
+  DISCONNECTED
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String
+  status     UserStatus
+  created_at DateTime
+  updated_at DateTime
+
+  profil Profil[] //@dev
+  messages Message[]
+  userHasDiscipline UserHasDisciplines[] //@dev pluriel
+  userHasSchool UserHasSchool[] //@dev
+  children Children[]
+  roles RoleHasUser[]
+  events Event[]
+}
+
+enum EventTagName {
+  CAGNOTTE
+  SPORT
+  PARC
+  SORTIE
+  FETE
+  MUSIQUE
+  ASSOCIATION
+  COURS
+  SONDAGE
+  COVOITURAGE
+  MUSEE
+  DEVOIR
+  FOOT
+}
+
+model EventTag {
+  id   String        @id @default(cuid())
+  tag  EventTagName
+  eventTags EventHasEventTag[]
+}
+
+model Children {
+  id         String   @id @default(cuid())
+  name       String
+  birthday   DateTime
+  class      String
+  user_id    String
+  school_id  String
+  created_at DateTime
+  updated_at DateTime
+
+  user    User    @relation(fields: [user_id], references: [id])
+  school  School  @relation(fields: [school_id], references: [id])
+  attendances ProfilAttendanceEvent[]
+
+  @@index([user_id, school_id], name: "children_user_id_school_id_index")
+}
