@@ -13,6 +13,7 @@ import { RoleModule } from './role/role.module';
 import { SchoolModule } from './school/school.module';
 import { ProfileService } from './user/profile.service';
 import { EventTagModule } from './event_tag/event_tag.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EventTagModule } from './event_tag/event_tag.module';
     AddressModule,
     MessageModule,
     EventTagModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService, ProfileService],

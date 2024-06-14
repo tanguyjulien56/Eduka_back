@@ -1,11 +1,25 @@
-import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common';
 
+import { PrismaService } from 'src/prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password-user.dto';
+import { ProfileService } from './profile.service';
 import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly prisma: PrismaService,
+    private readonly profileService: ProfileService,
+  ) {}
 
   @Post('change-password')
   async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
@@ -30,5 +44,19 @@ export class UserController {
       message: 'Profile updated successfully',
       user: updatedUser,
     };
+  }
+  @Get('profiles/school')
+  async getProfilesBySchool(
+    @Req() req,
+    @Query('skip') skip?: number,
+    @Query('take') take?: number,
+  ) {
+    const userId = req.user.userId; // Supposant que l'ID de l'utilisateur est stocké dans la requête (par exemple, après authentification)
+    const profiles = await this.profileService.findProfilesBySchool(
+      userId,
+      Number(skip),
+      Number(take),
+    );
+    return { profiles };
   }
 }
