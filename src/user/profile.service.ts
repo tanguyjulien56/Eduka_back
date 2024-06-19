@@ -1,33 +1,54 @@
 import { Injectable } from '@nestjs/common';
 import { Profile } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UserService } from './user.service'; // Import your UserService
 
 @Injectable()
 export class ProfileService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private userService: UserService, // Inject your UserService
+  ) {}
 
-  async findProfilesBySchool(
-    userId: string,
-    skip?: number,
-    take?: number,
+  async findProfilesByUserSchool(
+    userId: string, // Accept userId as string
+    skip: number,
+    take: number,
   ): Promise<Profile[]> {
-    const school = await this.prisma.userHasSchool.findFirst({
-      where: { user_id: userId },
-      select: { school_id: true },
-    });
+    // Get the user using UserService
+    const user = await this.userService.getUserById(userId);
 
-    if (!school) {
-      throw new Error('School not found for the user');
+    if (!user) {
+      throw new Error('User not found');
     }
 
-    const options: any = {
+    // Fetch UserHasSchool entries for the user
+    const userHasSchools = await this.prisma.userHasSchool.findMany({
       where: {
-        user: { userHasSchool: { some: { school_id: school.school_id } } },
+        user_id: user.id,
+      },
+    });
+
+    // Extract schoolIds from userHasSchools
+    const schoolIds = userHasSchools.map((entry) => entry.school_id);
+
+    // Query profiles based on schoolIds
+    const profiles = await this.prisma.profile.findMany({
+      where: {
+        user: {
+          userHasSchool: {
+            some: {
+              school_id: {
+                in: schoolIds,
+              },
+            },
+          },
+        },
       },
       skip,
       take,
-    };
+    });
 
-    return this.prisma.profile.findMany(options);
+    return profiles;
   }
 }

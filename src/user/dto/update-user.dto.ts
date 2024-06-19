@@ -1,4 +1,7 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateUserDto } from './create-user.dto';
+import { UserStatus } from '@prisma/client';
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
+export class UpdateUserDto {
+  email?: string;
+  password?: string;
+  status: UserStatus;
+}
