@@ -20,18 +20,26 @@ export class UserService {
     });
   }
 
-  async findAll() {
-    return this.prisma.user.findMany();
-  }
-
   async findByUnique(
     data: Prisma.UserWhereUniqueInput,
   ): Promise<UserModel | null> {
+    console.log('hello');
     return await this.prisma.user.findUnique({
       where: data,
     });
   }
+  async updateUser(
+    where: Prisma.UserWhereUniqueInput,
+    data: Prisma.UserUpdateInput,
+  ): Promise<UserModel> {
+    return this.prisma.user.update({ where, data });
+  }
 
+  async findByRefreshToken(refreshToken: string): Promise<UserModel | null> {
+    return this.prisma.user.findFirst({
+      where: { refreshToken },
+    });
+  }
   async update(id: string, data: UpdateUserDto) {
     return this.prisma.user.update({ where: { id }, data });
   }
@@ -43,7 +51,9 @@ export class UserService {
   async findUserById(userId: string) {
     return this.prisma.user.findUnique({ where: { id: userId } });
   }
-
+  async findUserByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
   async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 10);
   }
@@ -57,5 +67,12 @@ export class UserService {
 
   async getUserById(userId: string) {
     return this.prisma.user.findUnique({ where: { id: userId } });
+  }
+  async findAll(skip?: number, take?: number): Promise<UserModel[]> {
+    const options: any = {
+      ...(take && { take }),
+      ...(skip && { skip }),
+    };
+    return this.prisma.user.findMany(options);
   }
 }

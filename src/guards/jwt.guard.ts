@@ -6,37 +6,48 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    console.log('hello');
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
-    console.log('🚀 ~ AuthGuard ~ canActivate ~ token:', token);
+
     if (!token) {
-      throw new UnauthorizedException('Not authorized');
+      throw new UnauthorizedException('Authorization header missing');
     }
+
     try {
-      console.log('SECRET_KEY:', process.env.SECRET_KEY);
+      console.log('Attempting to verify token:', token);
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_KEY,
       });
-      console.log('🚀 ~ AuthGuard ~ canActivate ~ payload:', payload);
 
-      // 💡 We're assigning the payload to the request object here
-      // so that we can access it in our route handlers
-      request['user'] = payload;
-    } catch (e) {
-      console.log(e);
-      throw new UnauthorizedException(e);
+      console.log('Token verified successfully. Payload:', payload);
+
+      // Assigner le payload à la propriété 'user' de l'objet request pour un accès ultérieur dans les route handlers
+      request.user = payload;
+
+      return true;
+    } catch (error) {
+      console.error('Error verifying token:', error);
+      throw new UnauthorizedException('Invalid token');
     }
-    return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
+    const authorizationHeader = request.headers.authorization;
+
+    if (authorizationHeader) {
+      const [type, token] = authorizationHeader.split(' ');
+
+      if (type === 'Bearer' && token) {
+        return token;
+      }
+    }
+
+    return undefined;
   }
 }
