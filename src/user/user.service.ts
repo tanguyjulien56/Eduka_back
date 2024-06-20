@@ -1,39 +1,63 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'prisma/prisma.service';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(private prisma: PrismaService) {}
+
+  async findUserById(userId: string) {
+    return this.prisma.user.findUnique({ where: { id: userId } });
   }
 
-  constructor (private prisma: PrismaService) {
+  async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, 10);
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async updatePassword(userId: string, hashedPassword: string) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
   }
 
-  getById(id:any): any {
-    return this.prisma.user.findUnique({
-      where: { id },
+  async getUserById(userId: string) {
+    return this.prisma.user.findUnique({ where: { id: userId } });
+  }
+
+  async getProfilesBySchool(userId: string) {
+    // Vérifier si l'utilisateur est authentifié et a une école référente
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { userHasSchool: true },
     });
 
-  }
-  getByEmail(email:any): any {
-    return this.prisma.user.findUnique({
-      where: { email },
+    if (!user || !user.userHasSchool.length) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const schoolId = user.userHasSchool[0].school_id;
+
+    // Récupérer les profils liés à l'école
+    const profiles = await this.prisma.profile.findMany({
+      where: {
+        user: {
+          userHasSchool: {
+            some: {
+              school_id: schoolId,
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        photo: true,
+        address_id: true,
+      },
     });
 
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+    return profiles;
   }
 }
