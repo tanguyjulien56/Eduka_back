@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, User as UserModel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { PrismaService } from '../prisma/prisma.service';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class UserService {

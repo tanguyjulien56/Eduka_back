@@ -59,22 +59,14 @@ export class AuthController {
         console.log('User not found');
         throw new UnauthorizedException('Wrong credentials');
       }
-      console.log(
-        'Comparing passwords directly:',
-        data.password === user.password,
-      );
+
       // Compare passwords after trimming whitespace
       const isPasswordMatching = await bcrypt.compare(
         data.password,
         user.password,
       );
-      console.log(
-        '🚀 ~ AuthController ~ isPasswordMatching:',
-        isPasswordMatching,
-      );
 
       if (!isPasswordMatching) {
-        console.log('Password does not match');
         throw new UnauthorizedException('Wrong credentials');
       }
 

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AddressService } from './address.service';
 import { AddressController } from './address.controller';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   controllers: [AddressController],

@@ -23,7 +23,7 @@ export class UserController {
     private readonly profileService: ProfileService,
     private readonly jwtService: JwtService,
   ) {}
-
+  // change password at first connexion
   @Post('change-password')
   async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
     const { userId, newPassword } = changePasswordDto;
@@ -49,6 +49,8 @@ export class UserController {
       user: updatedUser,
     };
   }
+
+  // Receipe profil from my school
   @Get('profiles/school')
   @UseGuards(AuthGuard)
   async getProfilesBySchool(
