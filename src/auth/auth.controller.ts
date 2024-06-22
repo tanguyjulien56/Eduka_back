@@ -2,7 +2,7 @@ import { Body, Controller, HttpException, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { signinUserDto } from 'src/user/dto/signin-user.dto';
+import { SigninUserDto } from 'src/user/dto/signin-user.dto';
 import { log } from 'console';
 
 @Controller('auth')
@@ -14,8 +14,7 @@ export class AuthController {
   ) {}
 
   @Post('signin')
-  async signin(@Body() data: signinUserDto) {
-    // verifications TODO
+  async signin(@Body() data: SigninUserDto) {
     // does email exists ? (we need to have a user. First we need to declare a cont user to test an email and password)
     const user = await this.userService.findUserByEmail(data.email);
     if (!user) {
