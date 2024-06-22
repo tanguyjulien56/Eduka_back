@@ -1,11 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Prisma,User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
+  async findUserByEmail(email:string): Promise<User| null> {
+      return this.prisma.user.findUnique({
+        where: { email },
+      });
+    }
+  
   async findUserById(userId: string) {
     return this.prisma.user.findUnique({ where: { id: userId } });
   }
@@ -59,5 +66,5 @@ export class UserService {
     });
 
     return profiles;
-  }
+  }  
 }

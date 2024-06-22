@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
+
 import { UserModule } from './user/user.module';
 
 import { AddressModule } from './address/address.module';
@@ -13,6 +13,9 @@ import { RoleModule } from './role/role.module';
 import { SchoolModule } from './school/school.module';
 import { ProfileService } from './user/profile.service';
 import { EventTagModule } from './event_tag/event_tag.module';
+import { PrismaModule } from 'prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -26,6 +29,8 @@ import { EventTagModule } from './event_tag/event_tag.module';
     AddressModule,
     MessageModule,
     EventTagModule,
+    AuthModule,
+    ConfigModule.forRoot({isGlobal :true})
   ],
   controllers: [AppController],
   providers: [AppService, ProfileService],
