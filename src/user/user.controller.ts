@@ -1,6 +1,6 @@
-import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post } from '@nestjs/common';
 
-import { ChangePasswordDto } from './dto/change-password-user.dto';
+import { changePasswordDto } from './dto/change-password-user.dto';
 import { UserService } from './user.service';
 
 @Controller('users')
@@ -8,7 +8,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('change-password')
-  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+  async changePassword(@Body() changePasswordDto: changePasswordDto) {
     const { userId, newPassword } = changePasswordDto;
 
     // Vérifier si l'utilisateur existe

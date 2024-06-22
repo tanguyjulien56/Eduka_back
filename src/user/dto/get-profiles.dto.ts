@@ -1,6 +1,6 @@
 import { IsInt, IsOptional, Min } from 'class-validator';
 
-export class GetProfilesDto {
+export class getProfilesDto {
   @IsOptional()
   @IsInt()
   @Min(1)
