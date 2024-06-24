@@ -3,9 +3,9 @@ import { Prisma, User, User as UserModel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 
-import { PrismaService } from 'prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class UserService {
@@ -21,18 +21,26 @@ export class UserService {
     });
   }
 
-  async findAll() {
-    return this.prisma.user.findMany();
-  }
-
   async findByUnique(
     data: Prisma.UserWhereUniqueInput,
   ): Promise<UserModel | null> {
+    console.log('hello');
     return await this.prisma.user.findUnique({
       where: data,
     });
   }
+  async updateUser(
+    where: Prisma.UserWhereUniqueInput,
+    data: Prisma.UserUpdateInput,
+  ): Promise<UserModel> {
+    return this.prisma.user.update({ where, data });
+  }
 
+  async findByRefreshToken(refreshToken: string): Promise<UserModel | null> {
+    return this.prisma.user.findFirst({
+      where: { refreshToken },
+    });
+  }
   async update(id: string, data: UpdateUserDto) {
     return this.prisma.user.update({ where: { id }, data });
   }
@@ -50,7 +58,9 @@ export class UserService {
   async findUserById(userId: string) {
     return this.prisma.user.findUnique({ where: { id: userId } });
   }
-
+  async findUserByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
   async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 10);
   }
@@ -65,40 +75,11 @@ export class UserService {
   async getUserById(userId: string) {
     return this.prisma.user.findUnique({ where: { id: userId } });
   }
-
-  async getProfilesBySchool(userId: string) {
-    // Vérifier si l'utilisateur est authentifié et a une école référente
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: { userHasSchool: true },
-    });
-
-    if (!user || !user.userHasSchool.length) {
-      throw new UnauthorizedException('Unauthorized');
-    }
-
-    const schoolId = user.userHasSchool[0].school_id;
-
-    // Récupérer les profils liés à l'école
-    const profiles = await this.prisma.profile.findMany({
-      where: {
-        user: {
-          userHasSchool: {
-            some: {
-              school_id: schoolId,
-            },
-          },
-        },
-      },
-      select: {
-        id: true,
-        firstname: true,
-        lastname: true,
-        photo: true,
-        address_id: true,
-      },
-    });
-
-    return profiles;
+  async findAll(skip?: number, take?: number): Promise<UserModel[]> {
+    const options: any = {
+      ...(take && { take }),
+      ...(skip && { skip }),
+    };
+    return this.prisma.user.findMany(options);
   }
 }

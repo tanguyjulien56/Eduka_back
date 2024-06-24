@@ -7,8 +7,10 @@ import {
   Post,
   Query,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from 'src/guards/jwt.guard';
 import { ChangePasswordDto } from './dto/change-password-user.dto';
 import { ProfileService } from './profile.service';
 import { UserService } from './user.service';
@@ -20,7 +22,7 @@ export class UserController {
     private readonly profileService: ProfileService,
     private readonly jwtService: JwtService,
   ) {}
-
+  // change password at first connexion
   @Post('change-password')
   async changePassword(@Body() ChangePasswordDto: ChangePasswordDto) {
     const { userId, newPassword } = ChangePasswordDto;
@@ -46,7 +48,10 @@ export class UserController {
       user: updatedUser,
     };
   }
+
+  // Receipe profil from my school
   @Get('profiles/school')
+  @UseGuards(AuthGuard)
   async getProfilesBySchool(
     @Headers('authorization') authorization: string,
     @Query('skip') skip?: number,
@@ -58,17 +63,21 @@ export class UserController {
 
     try {
       const token = authorization.split(' ')[1];
-      const decoded = this.jwtService.verify(token); // Vérifier et décoder le JWT
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: process.env.SECRET_KEY,
+      });
 
-      // Si le tokex est valide, appelle de la fonction pour avoir tous les profils de l'utilisateur dans profilService
       const profiles = await this.profileService.findProfilesByUserSchool(
-        decoded.sub, // decode sub (user id)
+        payload.sub,
         skip || 0,
         take || 10,
       );
 
       return { profiles };
     } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('Token expired');
+      }
       throw new UnauthorizedException('Invalid token');
     }
   }

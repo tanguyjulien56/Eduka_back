@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { Profile } from '@prisma/client';
-
 import { PrismaService } from 'prisma/prisma.service';
 import { UserService } from './user.service'; // Import your UserService
 
@@ -33,7 +32,6 @@ export class ProfileService {
     // Extract schoolIds from userHasSchools
     const schoolIds = userHasSchools.map((entry) => entry.school_id);
 
-    // Query profiles based on schoolIds
     const profiles = await this.prisma.profile.findMany({
       where: {
         user: {
@@ -41,6 +39,13 @@ export class ProfileService {
             some: {
               school_id: {
                 in: schoolIds,
+              },
+            },
+          },
+          roles: {
+            some: {
+              role: {
+                name: 'PARENT',
               },
             },
           },

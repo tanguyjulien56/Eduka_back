@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { EventTagService } from './event_tag.service';
-import { EventTagController } from './event_tag.controller';
 import { PrismaService } from 'prisma/prisma.service';
+import { EventTagController } from './event_tag.controller';
+import { EventTagService } from './event_tag.service';
 
 @Module({
   controllers: [EventTagController],

@@ -16,22 +16,38 @@ export class AuthGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Authorization header missing');
     }
+
     try {
+      console.log('Attempting to verify token:', token);
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_KEY,
       });
 
-      request['user'] = payload;
-    } catch {
-      throw new UnauthorizedException();
+      console.log('Token verified successfully. Payload:', payload);
+
+      // Assigner le payload à la propriété 'user' de l'objet request pour un accès ultérieur dans les route handlers
+      request.user = payload;
+
+      return true;
+    } catch (error) {
+      console.error('Error verifying token:', error);
+      throw new UnauthorizedException('Invalid token');
     }
-    return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
+    const authorizationHeader = request.headers.authorization;
+
+    if (authorizationHeader) {
+      const [type, token] = authorizationHeader.split(' ');
+
+      if (type === 'Bearer' && token) {
+        return token;
+      }
+    }
+
+    return undefined;
   }
 }
