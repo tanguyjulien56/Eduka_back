@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { SigninUserDto } from 'src/user/dto/signin-user.dto';
-import { log } from 'console';
+
 
 @Controller('auth')
 export class AuthController {
@@ -20,7 +20,7 @@ export class AuthController {
     if (!user) {
       throw new HttpException("credentials don't match", 401);
     }
-
+    
     // is password correct ?
     const isValid = await this.authService.compare(
       data.password,
