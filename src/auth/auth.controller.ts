@@ -73,10 +73,10 @@ export class AuthController {
       }),
     };
   }
-  @Post('signIn')
+  @Post('signInJulien')
   async signIn(
     @Body() data: SignUpUserDto,
-  ): Promise<{ access_token: string; refresh_token: string; user: any }> {
+  ): Promise<{ access_token: string; user: any }> {
     try {
       console.log('Received login request:', data.email);
 
@@ -119,7 +119,7 @@ export class AuthController {
       });
 
       // Return tokens and user information
-      return { access_token, refresh_token, user };
+      return { access_token, user };
     } catch (error) {
       console.error('Error during signIn:', error);
       throw error; // Rethrow the error to maintain expected behavior
