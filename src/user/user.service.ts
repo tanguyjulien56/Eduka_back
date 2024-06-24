@@ -58,9 +58,9 @@ export class UserService {
   async findUserById(userId: string) {
     return this.prisma.user.findUnique({ where: { id: userId } });
   }
-  async findUserByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email } });
-  }
+  // async findUserByEmail(email: string) {
+  //   return this.prisma.user.findUnique({ where: { email } });
+  // }
   async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 10);
   }
