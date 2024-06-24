@@ -68,9 +68,8 @@ export class UserController {
         secret: process.env.SECRET_KEY,
       });
 
-      // Si le token est valide, appellez la fonction pour récupérer tous les profils de l'utilisateur dans profileService
       const profiles = await this.profileService.findProfilesByUserSchool(
-        payload.sub, // Utilisez payload.sub (id de l'utilisateur) pour récupérer les profils
+        payload.sub,
         skip || 0,
         take || 10,
       );
