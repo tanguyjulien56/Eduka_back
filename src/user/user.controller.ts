@@ -3,18 +3,16 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   Post,
   Query,
   UnauthorizedException,
 } from '@nestjs/common';
-
 import { JwtService } from '@nestjs/jwt';
 import { ChangePasswordDto } from './dto/change-password-user.dto';
 import { ProfileService } from './profile.service';
 import { UserService } from './user.service';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -23,8 +21,8 @@ export class UserController {
   ) {}
 
   @Post('change-password')
-  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
-    const { userId, newPassword } = changePasswordDto;
+  async changePassword(@Body() ChangePasswordDto: ChangePasswordDto) {
+    const { userId, newPassword } = ChangePasswordDto;
 
     // Vérifier si l'utilisateur existe
     const user = await this.userService.findUserById(userId);
