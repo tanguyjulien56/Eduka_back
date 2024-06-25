@@ -4,6 +4,9 @@ import { UpdateChildDto } from './dto/update-child.dto';
 
 @Injectable()
 export class ChildrenService {
+  searchChildren(query: string) {
+    throw new Error('Method not implemented.');
+  }
   create(createChildDto: CreateChildDto) {
     return 'This action adds a new child';
   }
