@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from 'src/guards/jwt.guard';
 import { ChangePasswordDto } from './dto/change-password-user.dto';
@@ -21,6 +22,7 @@ export class UserController {
     private readonly userService: UserService,
     private readonly profileService: ProfileService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService, // Injectez ConfigService pour accéder aux variables d'environnement
   ) {}
   // change password at first connexion
   @Post('change-password')
@@ -64,7 +66,7 @@ export class UserController {
     try {
       const token = authorization.split(' ')[1];
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.SECRET_KEY,
+        secret: this.configService.get('SECRET_KEY'), // Utilisez ConfigService pour obtenir la clé secrète
       });
 
       const profiles = await this.profileService.findProfilesByUserSchool(

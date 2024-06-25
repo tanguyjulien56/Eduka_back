@@ -14,6 +14,7 @@ import { EventModule } from './event/event.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from 'prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import configuration, { validationSchema } from './config/configuration';
 import { EventTagModule } from './event_tag/event_tag.module';
 import { MessageModule } from './message/message.module';
 import { RoleModule } from './role/role.module';
@@ -22,6 +23,11 @@ import { ProfileService } from './user/profile.service';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      load: [configuration],
+      validationSchema,
+      isGlobal: true,
+    }),
     UserModule,
     PrismaModule,
     EventModule,
