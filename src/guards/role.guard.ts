@@ -1,27 +1,61 @@
-// roles.guard.ts
-
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RoleName } from '@prisma/client'; // Assurez-vous d'importer votre enum RoleName de Prisma
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private readonly jwtService: JwtService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.get<RoleName[]>(
-      'roles',
-      context.getHandler(),
-    );
-    if (!requiredRoles) {
-      return true; // Aucun rôle requis, autorisation accordée
+    const roles = this.reflector.get<string[]>('roles', context.getHandler());
+    if (!roles) {
+      return true; // Route accessible sans restriction de rôle
     }
 
-    const { user } = context.switchToHttp().getRequest();
-    const userRoles: RoleName[] = user.roles.map(
-      (roleHasUser) => roleHasUser.role.name,
-    );
+    const request = context.switchToHttp().getRequest();
+    const token = this.extractTokenFromHeader(request);
 
-    return requiredRoles.some((role) => userRoles.includes(role));
+    if (!token) {
+      throw new UnauthorizedException('Token not found');
+    }
+
+    try {
+      const payload: any = this.jwtService.verify(token, {
+        secret: process.env.SECRET_KEY,
+      });
+
+      if (
+        !payload.roles ||
+        !payload.roles.some((role: string) => roles.includes(role))
+      ) {
+        throw new UnauthorizedException('Forbidden resource');
+      }
+
+      return true;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+
+  private extractTokenFromHeader(request: any): string | null {
+    const authorizationHeader = request.headers.authorization;
+
+    if (authorizationHeader) {
+      const [type, token] = authorizationHeader.split(' ');
+
+      if (type === 'Bearer' && token) {
+        return token;
+      }
+    }
+
+    return null;
   }
 }

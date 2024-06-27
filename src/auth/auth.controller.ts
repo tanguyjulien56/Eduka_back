@@ -11,9 +11,9 @@ import * as bcrypt from 'bcrypt';
 import { SignUpUserDto } from 'src/user/dto/sign-in-user.dto';
 import { SigninUserDto } from 'src/user/dto/signin-user.dto';
 
+import { User } from '@prisma/client';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
-import { Roles } from './roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -70,11 +70,10 @@ export class AuthController {
   //   };
   // }
   @Post('signInJulien')
-  @Roles('PARENT', 'SCHOOL')
   async signIn(@Body() data: SignUpUserDto): Promise<{
     access_token: string;
     refresh_token: string;
-    user: any;
+    user: User; // Ajustez le type en fonction de votre entité utilisateur
     redirect_url: string;
   }> {
     try {
@@ -97,32 +96,39 @@ export class AuthController {
         throw new UnauthorizedException('Wrong credentials');
       }
 
-      const payload = { sub: user.id, email: user.email };
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        roles: user.roles.map((userRole) => userRole.role.name),
+      };
 
+      // Signer le token d'actualisation (refresh token)
       const refresh_token = await this.jwtService.signAsync(payload, {
         secret: process.env.SECRET_KEY_REFRESH,
         expiresIn: '8h',
       });
 
+      // Mettre à jour le champ `refreshToken` dans la base de données
       await this.userService.updateUser(
         { id: user.id },
         { refreshToken: refresh_token },
       );
 
+      // Signer le token d'accès (access token)
       const access_token = await this.jwtService.signAsync(payload, {
         secret: process.env.SECRET_KEY,
         expiresIn: '30m',
       });
 
-      const roles = user.roles.map((role) => role.role.name);
+      // Déterminer l'URL de redirection en fonction des rôles de l'utilisateur
       let redirect_url = '/';
-
-      if (roles.includes('PARENT')) {
+      if (payload.roles.includes('PARENT')) {
         redirect_url = '/home_page_parent';
-      } else if (roles.includes('SCHOOL')) {
+      } else if (payload.roles.includes('SCHOOL')) {
         redirect_url = '/home_page_school';
       }
 
+      // Retourner les tokens générés, les informations utilisateur et l'URL de redirection
       return { access_token, refresh_token, user, redirect_url };
     } catch (error) {
       console.error('Error during signIn:', error);

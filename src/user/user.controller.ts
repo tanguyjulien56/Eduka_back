@@ -10,7 +10,9 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { Roles } from 'src/auth/roles.decorator';
 import { AuthGuard } from 'src/guards/jwt.guard';
+import { RolesGuard } from 'src/guards/role.guard';
 import { ChangePasswordDto } from './dto/change-password-user.dto';
 import { ProfileService } from './profile.service';
 import { UserService } from './user.service';
@@ -50,6 +52,8 @@ export class UserController {
     };
   }
   @Get('profiles/school')
+  @Roles('PARENT') // Spécifiez les rôles nécessaires pour cette route
+  @UseGuards(RolesGuard)
   @UseGuards(AuthGuard)
   async getProfilesBySchool(
     @Request() req: any,
