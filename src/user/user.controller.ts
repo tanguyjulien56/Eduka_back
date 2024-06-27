@@ -3,10 +3,9 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   Post,
   Query,
-  UnauthorizedException,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -16,7 +15,7 @@ import { ChangePasswordDto } from './dto/change-password-user.dto';
 import { ProfileService } from './profile.service';
 import { UserService } from './user.service';
 
-@Controller('users')
+@Controller('user')
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -42,7 +41,7 @@ export class UserController {
     await this.userService.updatePassword(userId, hashedPassword);
 
     // Réception des infos du profil mis à jour
-    const updatedUser = await this.userService.getUserById(userId);
+    const updatedUser = await this.userService.findUserById(userId);
 
     // Réponse: Profil mis à jour avec succès
     return {
@@ -50,37 +49,29 @@ export class UserController {
       user: updatedUser,
     };
   }
-
-  // Receipe profil from my school
   @Get('profiles/school')
   @UseGuards(AuthGuard)
   async getProfilesBySchool(
-    @Headers('authorization') authorization: string,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Request() req: any,
+    @Query('skip') skip = '0',
+    @Query('take') take = '10',
   ) {
-    if (!authorization) {
-      throw new UnauthorizedException('Authorization header missing');
+    const userId = req.user.sub;
+
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
     }
 
-    try {
-      const token = authorization.split(' ')[1];
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get('SECRET_KEY'),
-      });
+    // Convert skip and take to integers
+    const skipInt = parseInt(skip, 10);
+    const takeInt = parseInt(take, 10);
 
-      const profiles = await this.profileService.findProfilesByUserSchool(
-        payload.sub,
-        skip || 0,
-        take || 10,
-      );
+    const profiles = await this.profileService.findProfilesByUserSchool(
+      userId,
+      skipInt,
+      takeInt,
+    );
 
-      return { profiles };
-    } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        throw new UnauthorizedException('Token expired');
-      }
-      throw new UnauthorizedException('Invalid token');
-    }
+    return { profiles };
   }
 }

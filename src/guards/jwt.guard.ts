@@ -12,10 +12,11 @@ export class AuthGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
+      console.log('Authorization header missing');
       throw new UnauthorizedException('Authorization header missing');
     }
 
@@ -29,6 +30,8 @@ export class AuthGuard implements CanActivate {
 
       // Assigner le payload à la propriété 'user' de l'objet request pour un accès ultérieur dans les route handlers
       request.user = payload;
+
+      console.log('User assigned to request:', request.user);
 
       return true;
     } catch (error) {

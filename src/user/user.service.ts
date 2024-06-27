@@ -1,11 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Prisma, User, User as UserModel } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { Prisma, User as UserModel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 
+import { PrismaService } from 'prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class UserService {
@@ -24,7 +24,6 @@ export class UserService {
   async findByUnique(
     data: Prisma.UserWhereUniqueInput,
   ): Promise<UserModel | null> {
-    console.log('hello');
     return await this.prisma.user.findUnique({
       where: data,
     });
@@ -49,18 +48,29 @@ export class UserService {
     return this.prisma.user.delete({ where: { id } });
   }
 
-  async findUserByEmail(email: string): Promise<User | null> {
+  async findUserByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
     });
   }
 
-  async findUserById(userId: string) {
-    return this.prisma.user.findUnique({ where: { id: userId } });
+  async findUserById(userId: string): Promise<UserModel | null> {
+    if (!userId) {
+      throw new Error('User ID must be provided');
+    }
+
+    return this.prisma.user.findUnique({
+      where: { id: userId },
+    });
   }
-  // async findUserByEmail(email: string) {
-  //   return this.prisma.user.findUnique({ where: { email } });
-  // }
+
   async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 10);
   }
