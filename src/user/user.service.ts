@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, User as UserModel } from '@prisma/client';
+import { Prisma, RoleName, User as UserModel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 
@@ -91,5 +91,17 @@ export class UserService {
       ...(skip && { skip }),
     };
     return this.prisma.user.findMany(options);
+  }
+  async getUserRoles(userId: string): Promise<RoleName[]> {
+    const roles = await this.prisma.roleHasUser.findMany({
+      where: {
+        user_id: userId,
+      },
+      include: {
+        role: true,
+      },
+    });
+
+    return roles.map((roleHasUser) => roleHasUser.role.name);
   }
 }

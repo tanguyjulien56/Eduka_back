@@ -10,9 +10,9 @@ import * as bcrypt from 'bcrypt';
 
 import { SignUpUserDto } from 'src/user/dto/sign-in-user.dto';
 import { SigninUserDto } from 'src/user/dto/signin-user.dto';
-
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
+import { Roles } from './roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -69,62 +69,40 @@ export class AuthController {
   //   };
   // }
   @Post('signInJulien')
+  @Roles('PARENT', 'SCHOOL') // Spécifiez les rôles autorisés pour cette route
   async signIn(@Body() data: SignUpUserDto): Promise<{
     access_token: string;
-    refresh_token: string;
-    user: any;
     redirect_url: string;
   }> {
-    try {
-      console.log('Received login request:', data.email);
-
-      const user = await this.userService.findUserByEmail(data.email);
-      console.log('🚀 ~ AuthController ~ user:', user);
-
-      if (!user) {
-        console.log('User not found');
-        throw new UnauthorizedException('Wrong credentials');
-      }
-
-      const isPasswordMatching = await bcrypt.compare(
-        data.password,
-        user.password,
-      );
-
-      if (!isPasswordMatching) {
-        throw new UnauthorizedException('Wrong credentials');
-      }
-
-      const payload = { sub: user.id, email: user.email };
-
-      const refresh_token = await this.jwtService.signAsync(payload, {
-        secret: process.env.SECRET_KEY_REFRESH,
-        expiresIn: '8h',
-      });
-
-      await this.userService.updateUser(
-        { id: user.id },
-        { refreshToken: refresh_token },
-      );
-
-      const access_token = await this.jwtService.signAsync(payload, {
-        secret: process.env.SECRET_KEY,
-        expiresIn: '30m',
-      });
-
-      const roles = user.roles.map((role) => role.role.name);
-      let redirect_url = '/';
-
-      if (roles.includes('PARENT')) {
-        redirect_url = '/home_page_parent';
-      } else if (roles.includes('SCHOOL')) {
-        redirect_url = '/home_page_school';
-      }
-
-      return { access_token, refresh_token, user, redirect_url };
-    } catch (error) {
-      console.error('Error during signIn:', error);
-      throw error;
+    const user = await this.userService.findUserByEmail(data.email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
     }
+
+    const isPasswordMatching = await bcrypt.compare(
+      data.password,
+      user.password,
+    );
+    if (!isPasswordMatching) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const payload = { sub: user.id, email: user.email };
+
+    const access_token = await this.jwtService.signAsync(payload, {
+      secret: process.env.SECRET_KEY,
+      expiresIn: '30m',
+    });
+
+    let redirect_url = '/';
+    const roles = await this.userService.getUserRoles(user.id);
+
+    if (roles.includes('PARENT')) {
+      throw new UnauthorizedException('Unauthorized access for PARENT role');
+    } else if (roles.includes('SCHOOL')) {
+      throw new UnauthorizedException('Unauthorized access for SCHOOL role');
+    }
+
+    return { access_token, redirect_url };
   }
 }
