@@ -1,33 +1,27 @@
+// roles.guard.ts
+
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RoleName } from '@prisma/client';
-import { UserService } from 'src/user/user.service';
+import { RoleName } from '@prisma/client'; // Assurez-vous d'importer votre enum RoleName de Prisma
 
 @Injectable()
-export class RoleGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private userService: UserService, // Injectez le service utilisateur ici
-  ) {}
+export class RolesGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
+  canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.get<RoleName[]>(
+      'roles',
       context.getHandler(),
-      context.getClass(),
-    ]);
-
+    );
     if (!requiredRoles) {
-      // Si aucun rôle n'est spécifié, autorise l'accès
-      return true;
+      return true; // Aucun rôle requis, autorisation accordée
     }
 
-    const request = context.switchToHttp().getRequest();
-    const userId = request.user.id; // Supposons que vous ayez un middleware d'authentification qui place l'utilisateur dans la demande
+    const { user } = context.switchToHttp().getRequest();
+    const userRoles: RoleName[] = user.roles.map(
+      (roleHasUser) => roleHasUser.role.name,
+    );
 
-    // Récupérer les rôles de l'utilisateur depuis la table de jointure roleHasUser
-    const userRoles = await this.userService.getUserRoles(userId);
-
-    // Vérifie si l'utilisateur a le rôle requis
-    return requiredRoles.some((role: RoleName) => userRoles.includes(role));
+    return requiredRoles.some((role) => userRoles.includes(role));
   }
 }
