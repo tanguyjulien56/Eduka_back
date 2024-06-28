@@ -127,9 +127,19 @@ export class AuthController {
       } else if (payload.roles.includes('SCHOOL')) {
         redirect_url = '/home_page_school';
       }
+      // le user n'a qu'un role. on ajoute le role au user
+      const userWithRole = {
+        ...user,
+        roles: user.roles[0]?.role.name,
+      };
 
-      // Retourner les tokens générés, les informations utilisateur et l'URL de redirection
-      return { access_token, refresh_token, user, redirect_url };
+      // réponse au frontend
+      return {
+        access_token,
+        refresh_token,
+        user: userWithRole,
+        redirect_url,
+      };
     } catch (error) {
       console.error('Error during signIn:', error);
       throw error;
