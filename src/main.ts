@@ -23,7 +23,7 @@ async function bootstrap() {
     credentials: true, // Activer les cookies CORS (si nécessaire)
   });
 
-  await app.listen(3001);
+  await app.listen(3000);
 }
 
 bootstrap();
