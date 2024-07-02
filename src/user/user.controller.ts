@@ -16,6 +16,7 @@ import { RolesGuard } from 'src/guards/role.guard';
 import { ChangePasswordDto } from './dto/change-password-user.dto';
 import { ProfileService } from './profile.service';
 import { UserService } from './user.service';
+import { RoleName } from '@prisma/client';
 
 @Controller('user')
 export class UserController {
@@ -52,7 +53,7 @@ export class UserController {
     };
   }
   @Get('profiles/school')
-  @Roles('PARENT') // Spécifiez les rôles nécessaires pour cette route
+  @Roles(RoleName.PARENT) // Spécifiez les rôles nécessaires pour cette route
   @UseGuards(RolesGuard)
   @UseGuards(AuthGuard)
   async getProfilesBySchool(

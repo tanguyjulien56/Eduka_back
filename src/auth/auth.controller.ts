@@ -8,10 +8,9 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
-import { SignUpUserDto } from 'src/user/dto/sign-in-user.dto';
-import { SigninUserDto } from 'src/user/dto/signin-user.dto';
+import { SignInUserDto } from 'src/auth/dto/signin-user.dto';
 
-import { User } from '@prisma/client';
+import SingInUserInterface from 'src/interfaces/singInUser';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
 
@@ -24,7 +23,7 @@ export class AuthController {
   ) {}
 
   @Post('signin')
-  async signin(@Body() data: SigninUserDto) {
+  async signin(@Body() data: SignInUserDto) {
     // does email exists ? (we need to have a user. First we need to declare a cont user to test an email and password)
     const user = await this.userService.findUserByEmail(data.email);
     if (!user) {
@@ -70,10 +69,10 @@ export class AuthController {
   //   };
   // }
   @Post('signInJulien')
-  async signIn(@Body() data: SignUpUserDto): Promise<{
+  async signIn(@Body() data: SignInUserDto): Promise<{
     access_token: string;
     refresh_token: string;
-    user: User; // Ajustez le type en fonction de votre entité utilisateur
+    user: SingInUserInterface; // Ajustez le type en fonction de votre entité utilisateur
     redirect_url: string;
   }> {
     try {
@@ -124,13 +123,17 @@ export class AuthController {
       let redirect_url = '/';
       if (payload.roles.includes('PARENT')) {
         redirect_url = '/home_page_parent';
-      } else if (payload.roles.includes('SCHOOL')) {
+      }
+      if (payload.roles.includes('SCHOOL')) {
         redirect_url = '/home_page_school';
       }
       // le user n'a qu'un role. on ajoute le role au user
       const userWithRole = {
-        ...user,
-        roles: user.roles[0]?.role.name,
+        //@dev typage et retirer les champs
+        id: user.id,
+        email: user.email,
+        status: user.status,
+        role: user.roles[0]?.role.name,
       };
 
       // réponse au frontend
