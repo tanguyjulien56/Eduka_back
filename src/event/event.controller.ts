@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 
 import { RoleName } from '@prisma/client';
-import { PrismaService } from 'prisma/prisma.service';
 import { Roles } from 'src/auth/roles.decorator';
 import { AuthGuard } from 'src/guards/jwt.guard';
 import { RolesGuard } from 'src/guards/role.guard';
@@ -17,10 +16,7 @@ import { EventService } from './event.service';
 
 @Controller('event')
 export class EventController {
-  constructor(
-    private readonly eventService: EventService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly eventService: EventService) {}
 
   @Get()
   @Roles(RoleName.PARENT)

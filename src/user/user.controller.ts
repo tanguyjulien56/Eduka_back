@@ -8,23 +8,19 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { RoleName } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
 import { AuthGuard } from 'src/guards/jwt.guard';
 import { RolesGuard } from 'src/guards/role.guard';
 import { ChangePasswordDto } from './dto/change-password-user.dto';
 import { ProfileService } from './profile.service';
 import { UserService } from './user.service';
-import { RoleName } from '@prisma/client';
 
 @Controller('user')
 export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly profileService: ProfileService,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
   ) {}
   // change password at first connexion
   @Post('change-password')
