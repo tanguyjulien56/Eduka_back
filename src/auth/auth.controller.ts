@@ -127,6 +127,7 @@ export class AuthController {
       if (payload.roles.includes('SCHOOL')) {
         redirect_url = '/home_page_school';
       }
+      console.log('🚀 ~ AuthController ~ signIn ~ redirect_url:', redirect_url);
       // le user n'a qu'un role. on ajoute le role au user
       const userWithRole = {
         //@dev typage et retirer les champs

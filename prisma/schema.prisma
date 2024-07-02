@@ -132,11 +132,19 @@ model Address {
   address_line String
   zip_code     String
   city         String
+  location     Json
   school     School?
   school_id  String?  @unique
   profil Profile[] //@dev one to one
   event  Event[] //@dev one to one
 }
+
+// Example JSON format for location
+// {
+//   "type": "GEOLOC",
+//   "lat": 0,
+//   "long": 0
+// }
 
 model RoleHasUser {
   role_id String
