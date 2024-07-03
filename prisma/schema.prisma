@@ -135,8 +135,8 @@ model Address {
   location     Json
   school     School?
   school_id  String?  @unique
-  profil Profile[] //@dev one to one
-  event  Event[] //@dev one to one
+  profil Profile[]
+  event  Event[] 
 }
 
 // Example JSON format for location

@@ -63,13 +63,8 @@ export class EventService {
       user_id: event.user_id,
       status: event.status,
       tags: event.eventTags.map((ehet) => ehet.eventTag.tag),
-      address: {
-        id: event.address.id,
-        address_line: event.address.address_line,
-        zip_code: event.address.zip_code,
-        city: event.address.city,
-        school_id: event.address.school_id,
-      },
+      city: event.address.city,
+      location: event.address.location,
     }));
 
     return formattedEvents;

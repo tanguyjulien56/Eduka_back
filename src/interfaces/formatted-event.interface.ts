@@ -1,3 +1,10 @@
+import { JsonValue } from '@prisma/client/runtime/library';
+
+export interface Location {
+  type: string;
+  lat: number;
+  long: number;
+}
 export interface FormattedEvent {
   id: string;
   title: string;
@@ -10,11 +17,6 @@ export interface FormattedEvent {
   user_id: string;
   status: string;
   tags: string[];
-  address: {
-    id: string;
-    address_line: string;
-    zip_code: string;
-    city: string;
-    school_id: string | null;
-  };
+  city: string;
+  location: JsonValue;
 }
