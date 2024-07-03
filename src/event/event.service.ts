@@ -42,6 +42,11 @@ export class EventService {
       skip,
       take,
       include: {
+        user: {
+          include: {
+            profil: true,
+          },
+        },
         eventTags: {
           include: {
             eventTag: true,
@@ -65,6 +70,8 @@ export class EventService {
       tags: event.eventTags.map((ehet) => ehet.eventTag.tag),
       city: event.address.city,
       location: event.address.location,
+      lastname: event.user.profil.lastname,
+      firstname: event.user.profil.firstname,
     }));
 
     return formattedEvents;
