@@ -38,6 +38,9 @@ export class EventService {
     const eventsPublic = await this.prisma.event.findMany({
       where: {
         is_public: true,
+        start_date: {
+          gte: new Date(),
+        },
       },
       skip,
       take,
@@ -72,6 +75,59 @@ export class EventService {
       location: event.address.location,
       lastname: event.user.profil.lastname,
       firstname: event.user.profil.firstname,
+      profil_picture: event.user.profil.photo || '',
+      event_picture: event.photo || 'default_image_url.jpg',
+    }));
+
+    return formattedEvents;
+  }
+
+  async findUserEventByInterest(
+    skip: number,
+    take: number,
+  ): Promise<FormattedEvent[]> {
+    const eventsPublic = await this.prisma.event.findMany({
+      where: {
+        is_public: true,
+        start_date: {
+          gte: new Date(),
+        },
+      },
+      skip,
+      take,
+      include: {
+        user: {
+          include: {
+            profil: true,
+          },
+        },
+        eventTags: {
+          include: {
+            eventTag: true,
+          },
+        },
+        address: true,
+      },
+    });
+
+    const formattedEvents: FormattedEvent[] = eventsPublic.map((event) => ({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      start_date: event.start_date.toISOString(),
+      end_date: event.end_date.toISOString(),
+      guest_limit: event.guest_limit,
+      is_public: event.is_public,
+      category: event.category,
+      user_id: event.user_id,
+      status: event.status,
+      tags: event.eventTags.map((ehet) => ehet.eventTag.tag),
+      city: event.address.city,
+      location: event.address.location,
+      lastname: event.user.profil.lastname,
+      firstname: event.user.profil.firstname,
+      profil_picture: event.user.profil.photo || '',
+      event_picture: event.photo || 'default_image_url.jpg',
     }));
 
     return formattedEvents;

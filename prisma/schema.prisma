@@ -36,8 +36,8 @@ model User {
   profil Profile? 
   refreshToken String?
   messages Message[]
-  userHasDiscipline UserHasDisciplines[] //@dev pluriel
-  userHasSchool UserHasSchool[] //@dev
+  userHasDisciplines UserHasDisciplines[] 
+  userHasSchool UserHasSchool[] 
   children Children[]
   roles RoleHasUser[]
   events Event[]
@@ -175,6 +175,7 @@ model Event {
   description String
   start_date  DateTime
   end_date    DateTime
+  photo       String?
   guest_limit Int
   is_public   Boolean
   category    String  // @enum

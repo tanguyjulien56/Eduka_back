@@ -19,4 +19,8 @@ export interface FormattedEvent {
   tags: string[];
   city: string;
   location: JsonValue;
+  lastname: string;
+  firstname: string;
+  profil_picture: string;
+  event_picture: string;
 }

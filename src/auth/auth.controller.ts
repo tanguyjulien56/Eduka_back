@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 
 import { SignInUserDto } from 'src/auth/dto/signin-user.dto';
 
-import SingInUserInterface from 'src/interfaces/singInUser';
+import SignInUserInterface from 'src/interfaces/signInUser';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
 
@@ -72,7 +72,7 @@ export class AuthController {
   async signIn(@Body() data: SignInUserDto): Promise<{
     access_token: string;
     refresh_token: string;
-    user: SingInUserInterface; // Ajustez le type en fonction de votre entité utilisateur
+    user: SignInUserInterface; // Ajustez le type en fonction de votre entité utilisateur
     redirect_url: string;
   }> {
     try {
