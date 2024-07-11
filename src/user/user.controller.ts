@@ -13,7 +13,9 @@ import { Roles } from 'src/auth/roles.decorator';
 import { AuthGuard } from 'src/guards/jwt.guard';
 import { RolesGuard } from 'src/guards/role.guard';
 import { ChangePasswordDto } from './dto/change-password-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { ProfileService } from './profile.service';
+import { User } from './user.schema';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -49,7 +51,7 @@ export class UserController {
     };
   }
   @Get('profiles/school')
-  @Roles(RoleName.PARENT) // Spécifiez les rôles nécessaires pour cette route
+  @Roles(RoleName.PARENT) 
   @UseGuards(RolesGuard)
   @UseGuards(AuthGuard)
   async getProfilesBySchool(
@@ -74,5 +76,22 @@ export class UserController {
     );
 
     return { profiles };
+  }
+  @Post()
+  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+    return this.userService.create(createUserDto);
+  }
+
+  @Get()
+  async findAll(
+    @Query('page') page = '0',
+    @Query('limit') limit = '10',
+  ): Promise<User[]> {
+    const pageInt = parseInt(page, 10);
+    const limitInt = parseInt(limit, 10);
+
+    const users = await this.userService.findAll(pageInt, limitInt);
+
+    return users;
   }
 }

@@ -1,26 +1,44 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { Prisma, RoleName, User as UserModel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'crypto';
-
+import { Model } from 'mongoose';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User, UserDocument } from './user.schema';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+  ) {}
 
-  async create(data: CreateUserDto): Promise<UserModel> {
-    const userId = randomUUID();
-    return await this.prisma.user.create({
-      data: {
-        ...data,
-        id: userId,
-      },
-    });
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    try {
+      const createdUser = new this.userModel(createUserDto);
+      return await createdUser.save();
+    } catch (error) {
+      // Gérer l'erreur ici (ex. log, lancer une exception, etc.)
+      throw new Error(`Failed to create user: ${error.message}`);
+    }
   }
 
+  async findAll(page = 0, limit = 10): Promise<User[]> {
+    const options: any = {
+      skip: page * limit,
+      limit: limit,
+    };
+    return this.userModel.find({}, null, options);
+  }
+  // async findAll(skip?: number, take?: number): Promise<UserModel[]> {
+  //   const options: any = {
+  //     ...(take && { take }),
+  //     ...(skip && { skip }),
+  //   };
+  //   return this.prisma.user.findMany(options);
+  // }
   async findByUnique(
     data: Prisma.UserWhereUniqueInput,
   ): Promise<UserModel | null> {
@@ -84,13 +102,6 @@ export class UserService {
 
   async getUserById(userId: string) {
     return this.prisma.user.findUnique({ where: { id: userId } });
-  }
-  async findAll(skip?: number, take?: number): Promise<UserModel[]> {
-    const options: any = {
-      ...(take && { take }),
-      ...(skip && { skip }),
-    };
-    return this.prisma.user.findMany(options);
   }
   async getUserRoles(userId: string): Promise<RoleName[]> {
     const roles = await this.prisma.roleHasUser.findMany({

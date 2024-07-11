@@ -12,6 +12,7 @@ import { DisciplineModule } from './discipline/discipline.module';
 import { EventModule } from './event/event.module';
 
 import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { PrismaModule } from 'prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import configuration, { validationSchema } from './config/configuration';
@@ -23,6 +24,7 @@ import { ProfileService } from './user/profile.service';
 
 @Module({
   imports: [
+    MongooseModule.forRoot(process.env.DATABASE_URL_MONGODB),
     ConfigModule.forRoot({
       load: [configuration],
       validationSchema,
