@@ -20,10 +20,10 @@ export class AddressController {
   //   return this.addressService.create(createAddressDto);
   // }
 
-  // @Get()
-  // findAll() {
-  //   return this.addressService.findAll();
-  // }
+  @Get()
+  findAll() {
+    return this.addressService.findAll();
+  }
 
   // @Get(':id')
   // findOne(@Param('id') id: string) {

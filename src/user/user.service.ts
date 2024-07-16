@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ResetToken } from './resetToken.schema';
 import { User, UserDocument } from './user.schema';
 
 @Injectable()
@@ -13,6 +14,8 @@ export class UserService {
   constructor(
     private prisma: PrismaService,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(ResetToken.name)
+    private resetTokenModel: Model<ResetToken>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -114,5 +117,30 @@ export class UserService {
     });
 
     return roles.map((roleHasUser) => roleHasUser.role.name);
+  }
+  async generateResetToken(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (user) {
+      const expireDate = new Date();
+      console.log(user.id);
+
+      expireDate.setDate(expireDate.getHours() + 1);
+      console.log(
+        '🚀 ~ UserService ~ generateResetToken ~ expireDate:',
+        expireDate,
+      );
+      const crypto = require('crypto');
+      const resetToken = crypto.randomBytes(32).toString('hex'); // Générez un token de réinitialisation
+
+      const newResetToken = new this.resetTokenModel({
+        userId: user.id,
+        token: resetToken,
+        expireDate,
+      });
+
+      const savedResetToken = await newResetToken.save();
+      console.log('Saved Reset Token Document:', savedResetToken);
+      return resetToken;
+    }
   }
 }

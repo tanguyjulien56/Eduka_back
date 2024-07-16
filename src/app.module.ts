@@ -12,6 +12,7 @@ import { DisciplineModule } from './discipline/discipline.module';
 import { EventModule } from './event/event.module';
 
 import { ConfigModule } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PrismaModule } from 'prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -30,6 +31,16 @@ import { ProfileService } from './user/profile.service';
       validationSchema,
       isGlobal: true,
     }),
+    ClientsModule.register([
+      //declare à un message broker
+      {
+        name: 'NATS',
+        transport: Transport.NATS,
+        options: {
+          servers: ['nats://localhost:4222'],
+        },
+      },
+    ]),
     UserModule,
     PrismaModule,
     EventModule,
