@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ResetToken } from './resetToken.schema';
+import { ResetToken, ResetTokenDocument } from './resetToken.schema';
 import { User, UserDocument } from './user.schema';
 
 @Injectable()
@@ -142,5 +142,8 @@ export class UserService {
       console.log('Saved Reset Token Document:', savedResetToken);
       return resetToken;
     }
+  }
+  async verifyResetToken(token: string): Promise<ResetTokenDocument | null> {
+    return await this.resetTokenModel.findOneAndDelete({ token }).exec();
   }
 }

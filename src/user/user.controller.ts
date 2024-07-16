@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -17,7 +18,10 @@ import { RoleName } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
 import { AuthGuard } from 'src/guards/jwt.guard';
 import { RolesGuard } from 'src/guards/role.guard';
-import { ChangePasswordDto } from './dto/change-password-user.dto';
+import {
+  ChangePasswordDto,
+  ResetPasswordDto,
+} from './dto/change-password-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ProfileService } from './profile.service';
 import { User } from './user.schema';
@@ -39,10 +43,8 @@ export class UserController {
   }
   // change password at first connexion
   @Post('change-password')
-
   async changePassword(@Body() ChangePasswordDto: ChangePasswordDto) {
     const { userId, newPassword } = ChangePasswordDto;
-
     // Vérifier si l'utilisateur existe
     const user = await this.userService.findUserById(userId);
     if (!user) {
@@ -128,5 +130,35 @@ export class UserController {
       console.error('Error sending password reset email:', error);
       throw new Error('Failed to send password reset email.');
     }
+  }
+  @Put('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    const { resetToken, newPassword } = resetPasswordDto;
+    // trouver un reset token document valide
+    const token = await this.userService.verifyResetToken(resetToken);
+
+    if (!token) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Vérifier si l'utilisateur existe
+    const user = await this.userService.findUserById(token.userId);
+    if (!user) {
+      throw new BadRequestException('Credentials not valid');
+    }
+    // Réception d'un nouveau mot de passe et hashage
+    const hashedPassword = await this.userService.hashPassword(newPassword);
+
+    // Mise à jour du mot de passe utilisateur
+    await this.userService.updatePassword(token.userId, hashedPassword);
+
+    // Réception des infos du profil mis à jour
+    const updatedUser = await this.userService.findUserById(token.userId);
+
+    // Réponse: Profil mis à jour avec succès
+    return {
+      message: 'Profile updated successfully',
+      user: updatedUser,
+    };
   }
 }
