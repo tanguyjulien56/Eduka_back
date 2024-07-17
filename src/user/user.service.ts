@@ -18,16 +18,7 @@ export class UserService {
     private resetTokenModel: Model<ResetToken>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    try {
-      const createdUser = new this.userModel(createUserDto);
-      return await createdUser.save();
-    } catch (error) {
-      // Gérer l'erreur ici (ex. log, lancer une exception, etc.)
-      throw new Error(`Failed to create user: ${error.message}`);
-    }
-  }
-
+  //test mongo db
   async findAll(page = 0, limit = 10): Promise<User[]> {
     const options: any = {
       skip: page * limit,
@@ -35,13 +26,7 @@ export class UserService {
     };
     return this.userModel.find({}, null, options);
   }
-  // async findAll(skip?: number, take?: number): Promise<UserModel[]> {
-  //   const options: any = {
-  //     ...(take && { take }),
-  //     ...(skip && { skip }),
-  //   };
-  //   return this.prisma.user.findMany(options);
-  // }
+  
   async findByUnique(
     data: Prisma.UserWhereUniqueInput,
   ): Promise<UserModel | null> {
@@ -55,20 +40,9 @@ export class UserService {
   ): Promise<UserModel> {
     return this.prisma.user.update({ where, data });
   }
-
-  async findByRefreshToken(refreshToken: string): Promise<UserModel | null> {
-    return this.prisma.user.findFirst({
-      where: { refreshToken },
-    });
-  }
   async update(id: string, data: UpdateUserDto) {
     return this.prisma.user.update({ where: { id }, data });
   }
-
-  async remove(id: string) {
-    return this.prisma.user.delete({ where: { id } });
-  }
-
   async findUserByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },

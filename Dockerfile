@@ -1,5 +1,9 @@
 # Utiliser une image Node.js comme base
+<<<<<<< HEAD
 FROM node:201.15.1-alpine
+=======
+FROM node:16-alpine
+>>>>>>> 062407ca1711596d46683cfa42df213513105b06
 
 # Définir le répertoire de travail
 WORKDIR /usr/src/app

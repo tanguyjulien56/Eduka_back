@@ -22,7 +22,6 @@ import {
   ChangePasswordDto,
   ResetPasswordDto,
 } from './dto/change-password-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
 import { ProfileService } from './profile.service';
 import { User } from './user.schema';
 import { UserService } from './user.service';
@@ -92,10 +91,6 @@ export class UserController {
     );
 
     return { profiles };
-  }
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.userService.create(createUserDto);
   }
 
   @Get()
