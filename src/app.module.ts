@@ -37,7 +37,7 @@ import { ProfileService } from './user/profile.service';
         name: 'NATS',
         transport: Transport.NATS,
         options: {
-          servers: ['nats://localhost:4222'],
+          servers: [process.env.NATS_SERVER_URL],
         },
       },
     ]),

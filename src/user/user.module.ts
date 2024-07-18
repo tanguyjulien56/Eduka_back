@@ -11,15 +11,15 @@ import { ResetToken, ResetTokenSchema } from './resetToken.schema';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema },{ name: ResetToken.name, schema: ResetTokenSchema }]),
-    ClientsModule.register([
-      {
-        name: 'NATS',
-        transport: Transport.NATS,
-        options: {
-          servers: ['nats://localhost:4222'],
-        },
-      },
-    ]),
+    // ClientsModule.register([
+    //   {
+    //     name: 'NATS',
+    //     transport: Transport.NATS,
+    //     options: {
+    //       servers: ['nats://localhost:4222'],
+    //     },
+    //   },
+    // ]),
   ],
   controllers: [UserController],
   providers: [UserService, PrismaService, ProfileService],
