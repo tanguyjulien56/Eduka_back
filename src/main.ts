@@ -23,6 +23,6 @@ async function bootstrap() {
     credentials: true, // Activer les cookies CORS (si nécessaire)
   });
 
-  await app.listen(3000);
+  await app.listen(process.env.PORT);
 }
 bootstrap();
