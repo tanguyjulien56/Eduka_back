@@ -6,8 +6,7 @@ build-test:
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
-    - docker build  --build-arg BASE_BACK_URL=$URL_BACK_PROD -t registry.alt-tools.tech/gptriome/front:$CI_COMMIT_BRANCH .
-    - docker push  registry.alt-tools.tech/gptriome/front:$CI_COMMIT_BRANCH
+    - docker build  --build-arg BASE_BACK_URL=$URL_BACK_PROD -t registry.alt-tools.tech/gptriome/back:$CI_COMMIT_BRANCH .
+    - docker push  registry.alt-tools.tech/gptriome/back:$CI_COMMIT_BRANCH
   rules:
     - when: manual
-
