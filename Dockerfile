@@ -18,7 +18,7 @@ COPY . .
 # Générer le client Prisma
 RUN npx prisma generate
 
-# Build l'application => TS => JS
+
 RUN npm run build
 
 # Démarrer l'application
