@@ -1,5 +1,5 @@
 # Utiliser une image Node.js comme base
-FROM --platform=linux/amd64 node:20.15.1-alpine as build
+FROM node:20.15.1-slim
 RUN apt-get update -y
 RUN apt-get install -y openssl
 
