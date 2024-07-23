@@ -116,7 +116,7 @@ export class AuthController {
       // Signer le token d'accès (access token)
       const access_token = await this.jwtService.signAsync(payload, {
         secret: process.env.SECRET_KEY,
-        expiresIn: '30m',
+        expiresIn: '30s',
       });
 
       // Déterminer l'URL de redirection en fonction des rôles de l'utilisateur
