@@ -44,35 +44,31 @@ export class EventController {
 
     return { events: formattedEvents, message: 'all events public' };
   }
-  
+
   @Get()
-@Roles(RoleName.PARENT)
-@UseGuards(RolesGuard, AuthGuard)
-async getUserEvents(
-  @Request() req: any,
-  @Query('skip') skip = '0',
-  @Query('take') take = '10',
-): Promise<{ events: FormattedEvent[]; message: string }> {
-  const userId = req.user?.sub;
+  @Roles(RoleName.PARENT)
+  @UseGuards(RolesGuard, AuthGuard)
+  async getUserEvents(
+    @Request() req: any,
+    @Query('skip') skip = '0',
+    @Query('take') take = '10',
+  ): Promise<{ events: FormattedEvent[]; message: string }> {
+    const userId = req.user?.sub;
 
-  if (!userId) {
-    throw new BadRequestException(
-      'User ID not found or user not authenticated',
+    if (!userId) {
+      throw new BadRequestException(
+        'User ID not found or user not authenticated',
+      );
+    }
+
+    const skipInt = parseInt(skip, 10);
+    const takeInt = parseInt(take, 10);
+
+    const formattedEvents = await this.eventService.findPublicEventsFormatted(
+      skipInt,
+      takeInt,
     );
+
+    return { events: formattedEvents, message: 'all events public' };
   }
-
-  const skipInt = parseInt(skip, 10);
-  const takeInt = parseInt(take, 10);
-
-  const formattedEvents = await this.eventService.findPublicEventsFormatted(
-    skipInt,
-    takeInt,
-  );
-
-  return { events: formattedEvents, message: 'all events public' };
 }
-}
-
-
-
-

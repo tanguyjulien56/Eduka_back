@@ -149,4 +149,36 @@ export class AuthController {
       throw error;
     }
   }
+  @Post('refresh_token')
+  async refreshToken(
+    @Body() data: { refreshToken: string },
+  ): Promise<{ accessToken: string }> {
+    try {
+      const decoded = this.jwtService.verify(data.refreshToken, {
+        secret: process.env.SECRET_KEY_REFRESH,
+      });
+      console.log('🚀 ~ AuthController ~ refreshToken ~ decoded:', decoded);
+
+      const user = await this.userService.findUserById(decoded.sub);
+      if (!user || user.refreshToken !== data.refreshToken) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        roles: user.roles.map((userRole) => userRole.role.name),
+      };
+
+      const accessToken = await this.jwtService.signAsync(payload, {
+        secret: process.env.SECRET_KEY,
+        expiresIn: '30s',
+      });
+
+      return { accessToken };
+    } catch (error) {
+      console.error('Error during refreshToken:', error);
+      throw new UnauthorizedException('Failed to refresh token');
+    }
+  }
 }
