@@ -4,6 +4,7 @@ import {
   HttpException,
   Post,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -13,6 +14,7 @@ import { SignInUserDto } from 'src/auth/dto/signin-user.dto';
 import SignInUserInterface from 'src/interfaces/signInUser';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
+import { AuthGuard } from 'src/guards/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -150,6 +152,7 @@ export class AuthController {
     }
   }
   @Post('refresh_token')
+  @UseGuards(AuthGuard)
   async refreshToken(
     @Body() data: { refreshToken: string },
   ): Promise<{ accessToken: string }> {
