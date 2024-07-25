@@ -5,7 +5,7 @@ export interface Location {
   lat: number;
   long: number;
 }
-export interface FormattedEvent {
+export interface CardEvent {
   id: string;
   title: string;
   description: string;

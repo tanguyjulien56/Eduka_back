@@ -107,7 +107,7 @@ export class AuthController {
       // Signer le token d'actualisation (refresh token)
       const refresh_token = await this.jwtService.signAsync(payload, {
         secret: process.env.SECRET_KEY_REFRESH,
-        expiresIn: '1m',
+        expiresIn: '1d',
       });
 
       // Mettre à jour le champ `refreshToken` dans la base de données
@@ -119,7 +119,7 @@ export class AuthController {
       // Signer le token d'accès (access token)
       const access_token = await this.jwtService.signAsync(payload, {
         secret: process.env.SECRET_KEY,
-        expiresIn: '30s',
+        expiresIn: '30m',
       });
 
       // Déterminer l'URL de redirection en fonction des rôles de l'utilisateur
@@ -187,7 +187,7 @@ export class AuthController {
 
       const accessToken = await this.jwtService.signAsync(payload, {
         secret: process.env.SECRET_KEY,
-        expiresIn: '30s',
+        expiresIn: '30m',
       });
 
       return { accessToken };

@@ -1,74 +1,124 @@
 import {
   BadRequestException,
+  Body,
   Controller,
+  Delete,
   Get,
+  Param,
+  Post,
+  Put,
   Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
-
 import { RoleName } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
 import { AuthGuard } from 'src/guards/jwt.guard';
 import { RolesGuard } from 'src/guards/role.guard';
-import { FormattedEvent } from 'src/interfaces/formatted-event.interface';
+import { AuthenticatedRequest } from 'src/interfaces/authRequest';
+import { CardEvent } from 'src/interfaces/cardEvent';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
 import { EventService } from './event.service';
 
 @Controller('event')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
-  @Get()
-  @Roles(RoleName.PARENT)
+  @Get('public')
+  @Roles(RoleName.PARENT) // Assumes PARENT role can access public events
   @UseGuards(RolesGuard, AuthGuard)
   async getPublicEvents(
-    @Request() req: any,
-    @Query('skip') skip = '0',
-    @Query('take') take = '10',
-  ): Promise<{ events: FormattedEvent[]; message: string }> {
-    const userId = req.user?.sub;
-
-    if (!userId) {
-      throw new BadRequestException(
-        'User ID not found or user not authenticated',
-      );
-    }
-
-    const skipInt = parseInt(skip, 10);
-    const takeInt = parseInt(take, 10);
-
-    const formattedEvents = await this.eventService.findPublicEventsFormatted(
+    @Query('skip') skip: string = '0',
+    @Query('take') take: string = '10',
+  ): Promise<{ events: CardEvent[]; message: string }> {
+    // Validate skip and take parameters
+    const { skipInt, takeInt } = this.eventService.validatePagination(
+      skip,
+      take,
+    );
+    const formattedEvents = await this.eventService.findPublicEvents(
       skipInt,
       takeInt,
     );
-
-    return { events: formattedEvents, message: 'all events public' };
+    return {
+      events: formattedEvents,
+      message: 'All public events fetched successfully',
+    };
   }
 
-  @Get()
+  @Post()
   @Roles(RoleName.PARENT)
   @UseGuards(RolesGuard, AuthGuard)
-  async getUserEvents(
-    @Request() req: any,
-    @Query('skip') skip = '0',
-    @Query('take') take = '10',
-  ): Promise<{ events: FormattedEvent[]; message: string }> {
+  async createEvent(
+    @Body() createEventDto: CreateEventDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     const userId = req.user?.sub;
 
     if (!userId) {
+      throw new BadRequestException('User not authenticated');
+    }
+
+    await this.eventService.create(createEventDto, userId);
+    return {
+      status: 'success',
+      message: `Successfully created event ${createEventDto.title} by ${userId}`,
+    };
+  }
+
+  @Put(':id')
+  @Roles(RoleName.PARENT)
+  @UseGuards(RolesGuard, AuthGuard)
+  async updateEvent(
+    @Param('id') id: string,
+    @Body() updateEventDto: UpdateEventDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user?.sub;
+
+    if (!userId) {
+      throw new BadRequestException('User not authenticated');
+    }
+
+    const result = await this.eventService.update(id, updateEventDto, userId);
+
+    if (!result) {
       throw new BadRequestException(
-        'User ID not found or user not authenticated',
+        `Event with id ${id} not found or not authorized to update`,
       );
     }
 
-    const skipInt = parseInt(skip, 10);
-    const takeInt = parseInt(take, 10);
+    return {
+      status: 'success',
+      message: `Successfully updated event with id ${id}`,
+    };
+  }
 
-    const formattedEvents = await this.eventService.findPublicEventsFormatted(
-      skipInt,
-      takeInt,
-    );
+  @Delete(':id')
+  @Roles(RoleName.PARENT)
+  @UseGuards(RolesGuard, AuthGuard)
+  async deleteEvent(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user?.sub;
 
-    return { events: formattedEvents, message: 'all events public' };
+    if (!userId) {
+      throw new BadRequestException('User not authenticated');
+    }
+
+    const result = await this.eventService.delete(id, userId);
+
+    if (!result) {
+      throw new BadRequestException(
+        `Event with id ${id} not found or not authorized to delete`,
+      );
+    }
+
+    return {
+      status: 'success',
+      message: `Successfully deleted event with id ${id}`,
+    };
   }
 }
