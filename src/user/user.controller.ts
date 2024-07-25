@@ -18,10 +18,9 @@ import { RoleName } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
 import { AuthGuard } from 'src/guards/jwt.guard';
 import { RolesGuard } from 'src/guards/role.guard';
-import {
-  ChangePasswordDto,
-  ResetPasswordDto,
-} from './dto/change-password-user.dto';
+
+import { ChangePasswordDto } from './dto/change-password-user.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ProfileService } from './profile.service';
 import { User } from './user.schema';
 import { UserService } from './user.service';
@@ -40,7 +39,7 @@ export class UserController {
       },
     });
   }
-  // change password at first connexion
+
   @Post('change-password')
   async changePassword(@Body() ChangePasswordDto: ChangePasswordDto) {
     const { userId, newPassword } = ChangePasswordDto;

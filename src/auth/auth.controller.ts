@@ -3,6 +3,7 @@ import {
   Controller,
   HttpException,
   Post,
+  Request,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -11,10 +12,10 @@ import * as bcrypt from 'bcrypt';
 
 import { SignInUserDto } from 'src/auth/dto/signin-user.dto';
 
+import { AuthRefreshGuard } from 'src/guards/refresh.jwt.guard';
 import SignInUserInterface from 'src/interfaces/signInUser';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
-import { AuthGuard } from 'src/guards/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -106,7 +107,7 @@ export class AuthController {
       // Signer le token d'actualisation (refresh token)
       const refresh_token = await this.jwtService.signAsync(payload, {
         secret: process.env.SECRET_KEY_REFRESH,
-        expiresIn: '8h',
+        expiresIn: '1m',
       });
 
       // Mettre à jour le champ `refreshToken` dans la base de données
@@ -151,22 +152,33 @@ export class AuthController {
       throw error;
     }
   }
+  @UseGuards(AuthRefreshGuard)
   @Post('refresh_token')
-  @UseGuards(AuthGuard)
   async refreshToken(
-    @Body() data: { refreshToken: string },
+    @Request() req: any, // Accédez à la requête
   ): Promise<{ accessToken: string }> {
     try {
-      const decoded = this.jwtService.verify(data.refreshToken, {
+      // Extrait le refreshToken du header Authorization
+      const authorizationHeader = req.headers.authorization;
+      const token = authorizationHeader?.split(' ')[1]; // Extraire le token du format "Bearer token"
+
+      if (!token) {
+        throw new UnauthorizedException('No refresh token provided');
+      }
+
+      // Décode et vérifie le refreshToken
+      const decoded = this.jwtService.verify(token, {
         secret: process.env.SECRET_KEY_REFRESH,
       });
       console.log('🚀 ~ AuthController ~ refreshToken ~ decoded:', decoded);
 
+      // Trouve l'utilisateur associé au refreshToken
       const user = await this.userService.findUserById(decoded.sub);
-      if (!user || user.refreshToken !== data.refreshToken) {
+      if (!user || user.refreshToken !== token) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
+      // Crée un nouveau accessToken
       const payload = {
         sub: user.id,
         email: user.email,
