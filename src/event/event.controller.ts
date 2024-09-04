@@ -17,71 +17,63 @@ import { AuthGuard } from 'src/guards/jwt.guard';
 import { RolesGuard } from 'src/guards/role.guard';
 import { AuthenticatedRequest } from 'src/interfaces/authRequest';
 import { CardEvent } from 'src/interfaces/cardEvent';
+import { PaginatorUtils } from 'src/utils/paginator.utils';
+import { ResponseWithoutDataInterface } from 'src/utils/response.utils';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventService } from './event.service';
 
 @Controller('event')
 export class EventController {
-  constructor(private readonly eventService: EventService) {}
+  constructor(
+    private readonly eventService: EventService,
+    private readonly paginatorUtil: PaginatorUtils,
+  ) {}
 
   @Get('public')
-  @Roles(RoleName.PARENT) // Assumes PARENT role can access public events
-  @UseGuards(RolesGuard, AuthGuard)
+  @Roles(RoleName.PARENT)
+  @UseGuards(RolesGuard)
   async getPublicEvents(
     @Query('skip') skip: string = '0',
     @Query('take') take: string = '10',
   ): Promise<{ events: CardEvent[]; message: string }> {
     // Validate skip and take parameters
-    const { skipInt, takeInt } = this.eventService.validatePagination(
-      skip,
-      take,
-    );
-    const formattedEvents = await this.eventService.findPublicEvents(
-      skipInt,
-      takeInt,
-    );
     return {
-      events: formattedEvents,
+      events: await this.eventService.findPublicEvents(
+        this.paginatorUtil.validate(skip, take),
+      ),
       message: 'All public events fetched successfully',
     };
   }
 
   @Post()
   @Roles(RoleName.PARENT)
-  @UseGuards(RolesGuard, AuthGuard)
+  @UseGuards(RolesGuard)
   async createEvent(
     @Body() createEventDto: CreateEventDto,
     @Request() req: AuthenticatedRequest,
-  ) {
-    const userId = req.user?.sub;
-
-    if (!userId) {
-      throw new BadRequestException('User not authenticated');
-    }
-
-    await this.eventService.create(createEventDto, userId);
+  ): Promise<ResponseWithoutDataInterface> {
+    await this.eventService.create(createEventDto, req.user.sub);
     return {
       status: 'success',
-      message: `Successfully created event ${createEventDto.title} by ${userId}`,
+      message: `Successfully created event ${createEventDto.title} by ${req.user.sub}`,
     };
   }
 
   @Put(':id')
   @Roles(RoleName.PARENT)
-  @UseGuards(RolesGuard, AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   async updateEvent(
     @Param('id') id: string,
     @Body() updateEventDto: UpdateEventDto,
     @Request() req: AuthenticatedRequest,
-  ) {
-    const userId = req.user?.sub;
-
-    if (!userId) {
-      throw new BadRequestException('User not authenticated');
-    }
-
-    const result = await this.eventService.update(id, updateEventDto, userId);
+  ): Promise<ResponseWithoutDataInterface> {
+    console.log(req.user.sub);
+    const result = await this.eventService.update(
+      id,
+      updateEventDto,
+      req.user.sub,
+    );
 
     if (!result) {
       throw new BadRequestException(
@@ -97,25 +89,17 @@ export class EventController {
 
   @Delete(':id')
   @Roles(RoleName.PARENT)
-  @UseGuards(RolesGuard, AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   async deleteEvent(
     @Param('id') id: string,
     @Request() req: AuthenticatedRequest,
-  ) {
-    const userId = req.user?.sub;
-
-    if (!userId) {
-      throw new BadRequestException('User not authenticated');
-    }
-
-    const result = await this.eventService.delete(id, userId);
-
+  ): Promise<ResponseWithoutDataInterface> {
+    const result = await this.eventService.delete(id, req.user.sub);
     if (!result) {
       throw new BadRequestException(
         `Event with id ${id} not found or not authorized to delete`,
       );
     }
-
     return {
       status: 'success',
       message: `Successfully deleted event with id ${id}`,

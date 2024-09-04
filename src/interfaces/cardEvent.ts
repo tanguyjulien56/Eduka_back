@@ -17,10 +17,14 @@ export interface CardEvent {
   user_id: string;
   status: string;
   tags: string[];
-  city: string;
-  location: JsonValue;
-  lastname: string;
-  firstname: string;
-  profil_picture: string;
-  event_picture: string;
+  address: {
+    city: string;
+    location: JsonValue;
+  };
+  user: {
+    lastname: string;
+    firstname: string;
+    profil_picture: string;
+  };
+  picture: string;
 }

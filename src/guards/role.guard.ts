@@ -1,19 +1,22 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { BaseJWT } from './baseJwt';
 
 @Injectable()
-export class RolesGuard implements CanActivate {
+export class RolesGuard extends BaseJWT implements CanActivate {
   constructor(
     private reflector: Reflector,
     private readonly jwtService: JwtService,
-  ) {}
+  ) {
+    super();
+  }
 
   canActivate(context: ExecutionContext): boolean {
     // Récupère les rôles définis dans les métadonnées de la route
@@ -22,8 +25,7 @@ export class RolesGuard implements CanActivate {
       return true; // Si aucun rôle n'est défini, la route est accessible sans restriction
     }
 
-    const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
+    const { token } = this._extractTokenFromHeader(context);
 
     if (!token) {
       throw new UnauthorizedException('Token not found'); // Lève une exception si le token n'est pas trouvé
@@ -47,20 +49,5 @@ export class RolesGuard implements CanActivate {
     } catch (error) {
       throw new UnauthorizedException('Invalid token'); // Lève une exception en cas d'erreur de vérification du token
     }
-  }
-
-  private extractTokenFromHeader(request: any): string | null {
-    // Récupère l'en-tête Authorization de la requête
-    const authorizationHeader = request.headers.authorization;
-
-    if (authorizationHeader) {
-      const [type, token] = authorizationHeader.split(' ');
-
-      if (type === 'Bearer' && token) {
-        return token; // Retourne le token si le type est 'Bearer'
-      }
-    }
-
-    return null; // Retourne null si aucun token n'est trouvé
   }
 }

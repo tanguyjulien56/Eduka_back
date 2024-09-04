@@ -195,6 +195,7 @@ model Event {
 enum UserStatus {
   CONNECTED
   DISCONNECTED
+  SUSPENDED
 }
 enum EventTagName {
   CAGNOTTE
