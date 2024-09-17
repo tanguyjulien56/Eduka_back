@@ -22,6 +22,7 @@ import { MessageModule } from './message/message.module';
 import { RoleModule } from './role/role.module';
 import { SchoolModule } from './school/school.module';
 import { ProfileService } from './user/profile.service';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { ProfileService } from './user/profile.service';
       signOptions: { expiresIn: '1h' }, // Example expiration (adjust as needed)
     }),
     ConfigModule.forRoot({ isGlobal: true }),
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService, ProfileService],
