@@ -1,12 +1,17 @@
 import {
   Controller,
+  Get,
+  Param,
   Post,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
+import { existsSync } from 'fs';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
 
 @Controller('upload')
 export class UploadController {
@@ -28,8 +33,24 @@ export class UploadController {
   )
   uploadFile(@UploadedFile() file: Express.Multer.File) {
     // Renvoie le chemin du fichier uploadé
-    return {
-      imagePath: `uploads/${file.filename}`,
-    };
+    if (!file) {
+      throw new Error('No file uploaded');
+    }
+    console.log(file);
+    return { filePath: `/uploads/${file.filename}` };
+  }
+  @Get(':filename')
+  async getImage(@Param('filename') filename: string, @Res() res: Response) {
+    // Utiliser le chemin correct pour le dossier 'uploads' après la compilation
+    const filePath = join(__dirname, '..', 'uploads', filename);
+
+    console.log('File path:', filePath); // Debugging statement
+
+    // Vérifie si le fichier existe
+    if (existsSync(filePath)) {
+      return res.sendFile(filePath); // Envoie le fichier en réponse
+    } else {
+      return res.status(404).json({ message: 'File not found' });
+    }
   }
 }

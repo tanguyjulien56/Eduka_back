@@ -51,6 +51,7 @@ export class EventService {
         ...createEventDto,
       },
     });
+    console.log('🚀 ~ EventService ~ create ~ event:', event);
 
     return event;
   }

@@ -9,6 +9,7 @@ import {
   Put,
   Query,
   Request,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { RoleName } from '@prisma/client';
@@ -48,18 +49,23 @@ export class EventController {
 
   @Post()
   @Roles(RoleName.PARENT)
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, AuthGuard)
   async createEvent(
     @Body() createEventDto: CreateEventDto,
     @Request() req: AuthenticatedRequest,
   ): Promise<ResponseWithoutDataInterface> {
-    await this.eventService.create(createEventDto, req.user.sub);
+    const userId = req.user?.sub;
+    console.log('🚀 ~ EventController ~ createEvent ~ userId:', req.user);
+    if (!userId) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+
+    await this.eventService.create(createEventDto, userId);
     return {
       status: 'success',
-      message: `Successfully created event ${createEventDto.title} by ${req.user.sub}`,
+      message: `Successfully created event ${createEventDto.title} by ${userId}`,
     };
   }
-
   @Put(':id')
   @Roles(RoleName.PARENT)
   @UseGuards(AuthGuard, RolesGuard)
