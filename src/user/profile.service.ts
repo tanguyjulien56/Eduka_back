@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Profile } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { profileCard } from 'src/interfaces/ProfileCard';
 import { UserService } from './user.service';
 
 @Injectable()
@@ -11,10 +11,12 @@ export class ProfileService {
   ) {}
 
   async findProfilesByUserSchool(
+    paginator: {
+      skip: number;
+      take: number;
+    },
     userId: string,
-    skip: number,
-    take: number,
-  ): Promise<Profile[]> {
+  ): Promise<profileCard[]> {
     const user = await this.userService.findUserById(userId);
 
     if (!user) {
@@ -29,6 +31,7 @@ export class ProfileService {
 
     const schoolIds = userHasSchools.map((entry) => entry.school_id);
 
+    // Requête pour récupérer les profils des utilisateurs liés aux écoles
     const profiles = await this.prisma.profile.findMany({
       where: {
         user: {
@@ -48,10 +51,32 @@ export class ProfileService {
           },
         },
       },
-      skip,
-      take,
+      skip: paginator.skip,
+      take: paginator.take,
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        photo: true, // Assure-toi que le champ `photo` existe dans ta table `profile`
+      },
     });
 
-    return profiles;
+    // Conversion des données vers le format `profileCard`
+    return profiles.map((profile) => this.cardFormattedProfile(profile));
+  }
+
+  // Méthode pour formater le profil en `profileCard`
+  private cardFormattedProfile(profile: {
+    id: string;
+    firstname: string;
+    lastname: string;
+    photo: string | null;
+  }): profileCard {
+    return {
+      id: profile.id,
+      firstname: profile.firstname,
+      lastname: profile.lastname,
+      profil_picture: profile.photo || '', // Si `photo` est null, renvoyer une chaîne vide
+    };
   }
 }

@@ -5,8 +5,9 @@ import {
 } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
-import { CardEvent } from 'src/interfaces/cardEvent';
-import { CreateEventDto } from './dto/create-event.dto';
+import { eventCard } from 'src/interfaces/eventCard';
+
+import { CreateEventDtoSortieLoisirs } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 
 @Injectable()
@@ -16,11 +17,11 @@ export class EventService {
   async findPublicEvents(paginator: {
     skip: number;
     take: number;
-  }): Promise<CardEvent[]> {
+  }): Promise<eventCard[]> {
     const eventsPublic = await this.prisma.event.findMany({
       where: {
         is_public: true,
-        start_date: {
+        end_date: {
           gte: new Date(),
         },
       },
@@ -44,16 +45,74 @@ export class EventService {
     return eventsPublic.map((event) => this.cardFormattedEvent(event));
   }
 
-  async create(createEventDto: CreateEventDto, userId: string) {
-    const event = await this.prisma.event.create({
-      data: {
-        user_id: userId,
-        ...createEventDto,
-      },
-    });
-    console.log('🚀 ~ EventService ~ create ~ event:', event);
+  async createSortieLoisirs(
+    createEventDto: CreateEventDtoSortieLoisirs,
+    userId: string,
+  ) {
+    if (
+      createEventDto.address &&
+      createEventDto.city &&
+      createEventDto.zip_code
+    ) {
+      // Étape 1 : Créer ou récupérer l'adresse
+      const address = await this.prisma.address.create({
+        data: {
+          address_line: createEventDto.address,
+          city: createEventDto.city,
+          zip_code: createEventDto.zip_code,
+          location: {
+            type: createEventDto.location.type,
+            lat: createEventDto.location.lat,
+            lng: createEventDto.location.long,
+          },
+        },
+      });
 
-    return event;
+      // Étape 2 : Créer l'événement et associer l'adresse et l'utilisateur
+      const event = await this.prisma.event.create({
+        data: {
+          title: createEventDto.title,
+          description: createEventDto.description,
+          start_date: new Date(createEventDto.start_date),
+          end_date: new Date(createEventDto.end_date),
+          photo: createEventDto.photo,
+          guest_limit: createEventDto.guest_limit,
+          is_public: createEventDto.is_public,
+          category: createEventDto.category,
+          user: { connect: { id: userId } },
+          address: { connect: { id: address.id } }, // Lier l'adresse créée à l'événement
+          status: 'active',
+        },
+      });
+
+      // Étape 3 : Associer les tags à l'événement (via la table de relation EventHasEventTag)
+      // Étape 3 : Associer les tags existants à l'événement (via la table de relation EventHasEventTag)
+      if (createEventDto.tags && createEventDto.tags.length > 0) {
+        await Promise.all(
+          createEventDto.tags.map(async (tagName) => {
+            // Rechercher le tag dans la table EventTag
+            const eventTag = await this.prisma.eventTag.findFirst({
+              where: { tag: tagName },
+            });
+
+            // Si le tag existe, créer la relation dans la table de jointure
+            if (eventTag) {
+              await this.prisma.eventHasEventTag.create({
+                data: {
+                  event_id: event.id, // ID de l'événement
+                  event_tag_id: eventTag.id, // ID du tag existant
+                },
+              });
+            } else {
+              console.log(`Tag non trouvé : ${tagName}`);
+            }
+          }),
+        );
+      }
+
+      console.log('🚀 ~ EventService ~ create ~ event:', event);
+      return event;
+    }
   }
 
   async update(
@@ -94,7 +153,6 @@ export class EventService {
         is_public: updateEventDto.is_public,
         category: updateEventDto.category,
         address_id: updateEventDto.address_id,
-        status: updateEventDto.status,
       },
     });
 
@@ -123,7 +181,7 @@ export class EventService {
         address: true;
       };
     }>,
-  ): CardEvent {
+  ): eventCard {
     return {
       id: event.id,
       title: event.title,

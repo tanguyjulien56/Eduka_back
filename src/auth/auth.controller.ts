@@ -102,6 +102,9 @@ export class AuthController {
         sub: user.id,
         email: user.email,
         roles: user.roles.map((userRole) => userRole.role.name),
+        photo: user.profil?.photo || '',
+        firstname: user.profil?.firstname || '',
+        lastname: user.profil?.lastname || '',
       };
 
       // Signer le token d'actualisation (refresh token)
@@ -138,6 +141,9 @@ export class AuthController {
         email: user.email,
         status: user.status,
         role: user.roles[0]?.role.name,
+        photo: user.profil?.photo || '',
+        firstname: user.profil?.firstname || '',
+        lastname: user.profil?.lastname || '',
       };
 
       // réponse au frontend

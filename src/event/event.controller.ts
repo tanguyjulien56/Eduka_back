@@ -17,10 +17,10 @@ import { Roles } from 'src/auth/roles.decorator';
 import { AuthGuard } from 'src/guards/jwt.guard';
 import { RolesGuard } from 'src/guards/role.guard';
 import { AuthenticatedRequest } from 'src/interfaces/authRequest';
-import { CardEvent } from 'src/interfaces/cardEvent';
+import { eventCard } from 'src/interfaces/EventCard';
 import { PaginatorUtils } from 'src/utils/paginator.utils';
 import { ResponseWithoutDataInterface } from 'src/utils/response.utils';
-import { CreateEventDto } from './dto/create-event.dto';
+import { CreateEventDtoSortieLoisirs } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventService } from './event.service';
 
@@ -37,7 +37,7 @@ export class EventController {
   async getPublicEvents(
     @Query('skip') skip: string = '0',
     @Query('take') take: string = '10',
-  ): Promise<{ events: CardEvent[]; message: string }> {
+  ): Promise<{ events: eventCard[]; message: string }> {
     // Validate skip and take parameters
     return {
       events: await this.eventService.findPublicEvents(
@@ -51,7 +51,7 @@ export class EventController {
   @Roles(RoleName.PARENT)
   @UseGuards(RolesGuard, AuthGuard)
   async createEvent(
-    @Body() createEventDto: CreateEventDto,
+    @Body() createEventDto: CreateEventDtoSortieLoisirs,
     @Request() req: AuthenticatedRequest,
   ): Promise<ResponseWithoutDataInterface> {
     const userId = req.user?.sub;
@@ -60,7 +60,7 @@ export class EventController {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    await this.eventService.create(createEventDto, userId);
+    await this.eventService.createSortieLoisirs(createEventDto, userId);
     return {
       status: 'success',
       message: `Successfully created event ${createEventDto.title} by ${userId}`,

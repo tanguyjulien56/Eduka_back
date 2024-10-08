@@ -48,9 +48,10 @@ export class UserService {
       include: {
         roles: {
           include: {
-            role: true,
+            role: true, // Inclure les rôles associés
           },
         },
+        profil: true, // Inclure les informations du profil
       },
     });
   }

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PrismaService } from 'prisma/prisma.service';
 import { ProfileService } from 'src/user/profile.service';
+import { PaginatorUtils } from 'src/utils/paginator.utils';
 import { ResetToken, ResetTokenSchema } from './resetToken.schema';
 import { UserController } from './user.controller';
 import { User, UserSchema } from './user.schema';
@@ -24,7 +25,7 @@ import { UserService } from './user.service';
     // ]),
   ],
   controllers: [UserController],
-  providers: [UserService, PrismaService, ProfileService],
+  providers: [UserService, PrismaService, ProfileService, PaginatorUtils],
   exports: [UserService],
 })
 export class UserModule {}
