@@ -4,7 +4,6 @@ import { Prisma, RoleName, User as UserModel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { PrismaService } from 'prisma/prisma.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ResetToken, ResetTokenDocument } from './resetToken.schema';
 import { User, UserDocument } from './user.schema';
@@ -26,7 +25,7 @@ export class UserService {
     };
     return this.userModel.find({}, null, options);
   }
-  
+
   async findByUnique(
     data: Prisma.UserWhereUniqueInput,
   ): Promise<UserModel | null> {
@@ -49,20 +48,28 @@ export class UserService {
       include: {
         roles: {
           include: {
-            role: true,
+            role: true, // Inclure les rôles associés
           },
         },
+        profil: true, // Inclure les informations du profil
       },
     });
   }
 
-  async findUserById(userId: string): Promise<UserModel | null> {
+  async findUserById(userId: string) {
     if (!userId) {
       throw new Error('User ID must be provided');
     }
 
     return this.prisma.user.findUnique({
       where: { id: userId },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
     });
   }
 

@@ -34,7 +34,7 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
   profil Profile? 
-  refreshToken String?
+  refreshToken String? @db.VarChar(1024)
   messages Message[]
   userHasDisciplines UserHasDisciplines[] 
   userHasSchool UserHasSchool[] 
@@ -139,7 +139,7 @@ model Address {
   event  Event[] 
 }
 
-// Example JSON format for location
+
 // {
 //   "type": "GEOLOC",
 //   "lat": 0,
@@ -195,6 +195,7 @@ model Event {
 enum UserStatus {
   CONNECTED
   DISCONNECTED
+  SUSPENDED
 }
 enum EventTagName {
   CAGNOTTE

@@ -5,7 +5,7 @@ export interface Location {
   lat: number;
   long: number;
 }
-export interface FormattedEvent {
+export interface eventCard {
   id: string;
   title: string;
   description: string;
@@ -17,10 +17,14 @@ export interface FormattedEvent {
   user_id: string;
   status: string;
   tags: string[];
-  city: string;
-  location: JsonValue;
-  lastname: string;
-  firstname: string;
-  profil_picture: string;
-  event_picture: string;
+  address: {
+    city: string;
+    location: JsonValue;
+  };
+  user: {
+    lastname: string;
+    firstname: string;
+    profil_picture: string;
+  };
+  picture: string;
 }

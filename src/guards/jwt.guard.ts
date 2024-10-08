@@ -5,15 +5,16 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
+import { BaseJWT } from './baseJwt';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+export class AuthGuard extends BaseJWT implements CanActivate {
+  constructor(private jwtService: JwtService) {
+    super();
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
-    const token = this.extractTokenFromHeader(request);
+    const { token, request } = this._extractTokenFromHeader(context);
 
     if (!token) {
       console.log('Authorization header missing');
@@ -38,19 +39,5 @@ export class AuthGuard implements CanActivate {
       console.error('Error verifying token:', error);
       throw new UnauthorizedException('Invalid token');
     }
-  }
-
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const authorizationHeader = request.headers.authorization;
-
-    if (authorizationHeader) {
-      const [type, token] = authorizationHeader.split(' ');
-
-      if (type === 'Bearer' && token) {
-        return token;
-      }
-    }
-
-    return undefined;
   }
 }

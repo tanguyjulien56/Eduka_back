@@ -14,6 +14,8 @@ import { EventModule } from './event/event.module';
 import { ConfigModule } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { PrismaModule } from 'prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import configuration, { validationSchema } from './config/configuration';
@@ -21,6 +23,7 @@ import { EventTagModule } from './event_tag/event_tag.module';
 import { MessageModule } from './message/message.module';
 import { RoleModule } from './role/role.module';
 import { SchoolModule } from './school/school.module';
+import { UploadModule } from './upload/upload.module';
 import { ProfileService } from './user/profile.service';
 
 @Module({
@@ -37,7 +40,7 @@ import { ProfileService } from './user/profile.service';
         name: 'NATS',
         transport: Transport.NATS,
         options: {
-          servers: ['nats://localhost:4222'],
+          servers: [process.env.NATS_SERVER_URL],
         },
       },
     ]),
@@ -57,6 +60,11 @@ import { ProfileService } from './user/profile.service';
       signOptions: { expiresIn: '1h' }, // Example expiration (adjust as needed)
     }),
     ConfigModule.forRoot({ isGlobal: true }),
+    UploadModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', 'uploads'), // Chemin vers le dossier contenant les fichiers
+      serveRoot: '/uploads', // URL pour accéder aux fichiers
+    }),
   ],
   controllers: [AppController],
   providers: [AppService, ProfileService],

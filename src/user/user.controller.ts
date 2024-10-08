@@ -18,20 +18,20 @@ import { RoleName } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
 import { AuthGuard } from 'src/guards/jwt.guard';
 import { RolesGuard } from 'src/guards/role.guard';
-import {
-  ChangePasswordDto,
-  ResetPasswordDto,
-} from './dto/change-password-user.dto';
+import { profileCard } from 'src/interfaces/ProfileCard';
+import { PaginatorUtils } from 'src/utils/paginator.utils';
+import { ChangePasswordDto } from './dto/change-password-user.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ProfileService } from './profile.service';
 import { User } from './user.schema';
 import { UserService } from './user.service';
-
 @Controller('user')
 export class UserController {
   private client: ClientProxy;
   constructor(
     private readonly userService: UserService,
     private readonly profileService: ProfileService,
+    private readonly paginatorUtil: PaginatorUtils,
   ) {
     this.client = ClientProxyFactory.create({
       transport: Transport.NATS,
@@ -40,7 +40,7 @@ export class UserController {
       },
     });
   }
-  // change password at first connexion
+
   @Post('change-password')
   async changePassword(@Body() ChangePasswordDto: ChangePasswordDto) {
     const { userId, newPassword } = ChangePasswordDto;
@@ -65,32 +65,32 @@ export class UserController {
       user: updatedUser,
     };
   }
-  @Get('profiles/school')
+
+  @Get('profiles/parentsbyschool')
   @Roles(RoleName.PARENT)
   @UseGuards(RolesGuard)
   @UseGuards(AuthGuard)
   async getProfilesBySchool(
     @Request() req: any,
-    @Query('skip') skip = '0',
-    @Query('take') take = '10',
-  ) {
+    @Query('skip') skip: string = '0',
+    @Query('take') take: string = '10',
+  ): Promise<{ profiles: profileCard[]; message: string }> {
     const userId = req.user.sub;
 
     if (!userId) {
       throw new BadRequestException('User ID not found in request');
     }
 
-    // Convert skip and take to integers
-    const skipInt = parseInt(skip, 10);
-    const takeInt = parseInt(take, 10);
+    // Appelle la fonction qui renvoie un objet avec les valeurs skip et take
+    const pagination = this.paginatorUtil.validate(skip, take);
 
-    const profiles = await this.profileService.findProfilesByUserSchool(
-      userId,
-      skipInt,
-      takeInt,
-    );
-
-    return { profiles };
+    return {
+      profiles: await this.profileService.findProfilesByUserSchool(
+        pagination, // On passe l'objet contenant skip et take
+        userId,
+      ),
+      message: 'All profiles fetched successfully',
+    };
   }
 
   @Get()
