@@ -156,4 +156,19 @@ export class UserController {
       user: updatedUser,
     };
   }
+
+  @Get('profile')
+  @Roles(RoleName.PARENT)
+  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard)
+  async getProfile(@Request() req: any): Promise<profileCard> {
+    const userId = req.user.sub;
+    console.log('🚀 ~ UserController ~ getProfile ~ userId:', userId);
+
+    if (!userId) {
+      console.log('User ID not found in request');
+      throw new BadRequestException('User ID not found in request');
+    }
+    return await this.profileService.findProfileById(userId);
+  }
 }

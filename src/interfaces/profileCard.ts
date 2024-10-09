@@ -3,4 +3,5 @@ export interface profileCard {
   lastname: string;
   firstname: string;
   profil_picture: string;
+  created_at: Date;
 }

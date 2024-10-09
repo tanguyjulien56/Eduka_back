@@ -47,6 +47,55 @@ export class EventController {
     };
   }
 
+  @Get('my_events')
+  @Roles(RoleName.PARENT)
+  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard)
+  async getMyEvents(
+    @Request() req: any,
+    @Query('skip') skip: string = '0',
+    @Query('take') take: string = '10',
+  ): Promise<{ events: eventCard[]; message: string }> {
+    const userId = req.user.sub;
+    console.log('🚀 ~ EventController ~ userId:', userId);
+
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    // Validate skip and take parameters
+    return {
+      events: await this.eventService.findMyEvents(
+        this.paginatorUtil.validate(skip, take),
+        req.user.sub,
+      ),
+      message: 'All my events fetched successfully',
+    };
+  }
+  @Get('my_participation')
+  @Roles(RoleName.PARENT)
+  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard)
+  async getMyParticiptions(
+    @Request() req: any,
+    @Query('skip') skip: string = '0',
+    @Query('take') take: string = '10',
+  ): Promise<{ events: eventCard[]; message: string }> {
+    const userId = req.user.sub;
+    console.log('🚀 ~ EventController ~ userId:', userId);
+
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    // Validate skip and take parameters
+    return {
+      events: await this.eventService.findMyParticipations(
+        this.paginatorUtil.validate(skip, take),
+        req.user.sub,
+      ),
+      message: 'All my events fetched successfully',
+    };
+  }
+
   @Post()
   @Roles(RoleName.PARENT)
   @UseGuards(RolesGuard, AuthGuard)

@@ -57,7 +57,12 @@ export class ProfileService {
         id: true,
         firstname: true,
         lastname: true,
-        photo: true, // Assure-toi que le champ `photo` existe dans ta table `profile`
+        photo: true,
+        user: {
+          select: {
+            created_at: true, // Sélection du champ createdAt depuis User
+          },
+        },
       },
     });
 
@@ -65,18 +70,44 @@ export class ProfileService {
     return profiles.map((profile) => this.cardFormattedProfile(profile));
   }
 
+  async findProfileById(id: string): Promise<profileCard> {
+    const profile = await this.prisma.profile.findUnique({
+      where: {
+        userId: id,
+      },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        photo: true,
+        user: {
+          select: {
+            created_at: true, // Sélection du champ createdAt depuis User
+          },
+        },
+      },
+    });
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+    return this.cardFormattedProfile(profile);
+  }
   // Méthode pour formater le profil en `profileCard`
   private cardFormattedProfile(profile: {
     id: string;
     firstname: string;
     lastname: string;
     photo: string | null;
+    user: {
+      created_at: Date;
+    };
   }): profileCard {
     return {
       id: profile.id,
       firstname: profile.firstname,
       lastname: profile.lastname,
-      profil_picture: profile.photo || '', // Si `photo` est null, renvoyer une chaîne vide
+      profil_picture: profile.photo || '',
+      created_at: profile.user.created_at, // Utilisation de createdAt depuis User
     };
   }
 }

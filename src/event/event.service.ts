@@ -45,6 +45,66 @@ export class EventService {
     return eventsPublic.map((event) => this.cardFormattedEvent(event));
   }
 
+  async findMyEvents(
+    paginator: {
+      skip: number;
+      take: number;
+    },
+    userId: string,
+  ): Promise<eventCard[]> {
+    const eventsPublic = await this.prisma.event.findMany({
+      where: {
+        end_date: {
+          gte: new Date(),
+        },
+        user_id: userId,
+      },
+      skip: paginator.skip,
+      take: paginator.take,
+      include: {
+        user: {
+          include: {
+            profil: true,
+          },
+        },
+        eventTags: {
+          include: {
+            eventTag: true,
+          },
+        },
+        address: true,
+      },
+    });
+
+    return eventsPublic.map((event) => this.cardFormattedEvent(event));
+  }
+
+  async findMyParticipations(
+    paginator: { skip: number; take: number },
+    userId: string,
+  ): Promise<eventCard[]> {
+    const eventsPublic = await this.prisma.event.findMany({
+      where: {
+        end_date: { gte: new Date() },
+        attendances: {
+          some: {
+            children: {
+              user_id: userId,
+            },
+          },
+        },
+      },
+      skip: paginator.skip,
+      take: paginator.take,
+      include: {
+        user: { include: { profil: true } },
+        eventTags: { include: { eventTag: true } },
+        address: true,
+      },
+    });
+
+    return eventsPublic.map((event) => this.cardFormattedEvent(event));
+  }
   async createSortieLoisirs(
     createEventDto: CreateEventDtoSortieLoisirs,
     userId: string,
