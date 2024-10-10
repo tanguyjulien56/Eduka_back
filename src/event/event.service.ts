@@ -253,7 +253,9 @@ export class EventService {
       category: event.category,
       user_id: event.user_id,
       status: event.status,
-      picture: event.photo || 'default_image_url.jpg',
+      picture:
+        event.photo ||
+        'https://media.istockphoto.com/id/1330261325/fr/photo/des-enfants-heureux-qui-jouent-ensemble-dans-le-parc.jpg?s=2048x2048&w=is&k=20&c=NA1H1VECjNbfYa8_1jOiGQTRR9mrHnEDO-ewLHEABmE=',
       tags: event.eventTags.map((eventTag) => eventTag.eventTag.tag),
       address: {
         city: event.address.city,
