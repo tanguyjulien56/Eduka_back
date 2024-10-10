@@ -20,6 +20,7 @@ import { AuthGuard } from 'src/guards/jwt.guard';
 import { RolesGuard } from 'src/guards/role.guard';
 import { profileCard } from 'src/interfaces/ProfileCard';
 import { PaginatorUtils } from 'src/utils/paginator.utils';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ChangePasswordDto } from './dto/change-password-user.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ProfileService } from './profile.service';
