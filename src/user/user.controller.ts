@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Put,
   Query,
@@ -171,5 +172,31 @@ export class UserController {
       throw new BadRequestException('User ID not found in request');
     }
     return await this.profileService.findProfileById(userId);
+  }
+  @Get('profile/:id')
+  @Roles(RoleName.PARENT)
+  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard)
+  async getDetailsProfile(
+    @Param('id') id: string,
+    @Request() req: any,
+  ): Promise<profileCard> {
+    const userId = req.user.sub;
+    console.log('🚀 ~ UserController ~ getDetailsProfile ~ userId:', userId);
+
+    // Vérification si l'ID utilisateur est présent
+    if (!userId) {
+      console.log('User ID not found in request');
+      throw new BadRequestException('User ID not found in request');
+    }
+
+    // Récupération du profil en fonction de l'ID passé en paramètre
+    const profileCard = await this.profileService.findDetailsProfileById(id);
+    console.log(
+      '🚀 ~ UserController ~ getDetailsProfile ~ profileCard:',
+      profileCard,
+    );
+
+    return profileCard;
   }
 }
